@@ -2,397 +2,22 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Download, Search, Filter, Code, FileText, Settings, Zap } from 'lucide-react';
+import { Copy, Download, Search, Filter, Code, FileText, Settings, Zap, Eye } from 'lucide-react';
+import { getAllTemplates, getFeaturedTemplates, CodeTemplate } from '@/data/templates-data';
+import TemplateModal from '@/components/templates/TemplateModal';
 
-interface CodeTemplate {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  language: string;
-  filename: string;
-  content: string;
-  tags: string[];
-  featured: boolean;
-}
-
-const templates: CodeTemplate[] = [
-  {
-    id: 'express-server',
-    title: 'Express.js Server',
-    description: 'Basic Express.js server setup with middleware, routes, and error handling',
-    category: 'server',
-    language: 'javascript',
-    filename: 'server.js',
-    content: `const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Server is running' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
-app.listen(PORT, () => {
-  console.log(\`Server running on port \${PORT}\`);
-});`,
-    tags: ['express', 'server', 'middleware', 'api'],
-    featured: true
-  },
-  {
-    id: 'package-json',
-    title: 'Package.json Template',
-    description: 'Standard package.json configuration for Node.js projects',
-    category: 'config',
-    language: 'json',
-    filename: 'package.json',
-    content: `{
-  "name": "your-project-name",
-  "version": "1.0.0",
-  "description": "Project description here",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "build": "npm run build",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
-  },
-  "keywords": ["keyword1", "keyword2"],
-  "author": "Your Name <your.email@example.com>",
-  "license": "MIT",
-  "dependencies": {
-    "express": "^4.18.0",
-    "cors": "^2.8.5",
-    "helmet": "^6.0.0",
-    "dotenv": "^16.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.20",
-    "jest": "^29.0.0",
-    "eslint": "^8.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  }
-}`,
-    tags: ['config', 'npm', 'package', 'dependencies'],
-    featured: true
-  },
-  {
-    id: 'react-component',
-    title: 'React Component Template',
-    description: 'TypeScript React component with props interface and modern hooks',
-    category: 'component',
-    language: 'typescript',
-    filename: 'Component.tsx',
-    content: `import React, { useState, useEffect } from 'react';
-
-interface ComponentProps {
-  title: string;
-  description?: string;
-  onAction?: (data: any) => void;
-  className?: string;
-}
-
-export const Component: React.FC<ComponentProps> = ({
-  title,
-  description,
-  onAction,
-  className = ''
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
-
-  useEffect(() => {
-    // Component initialization logic
-    console.log('Component mounted');
-    
-    return () => {
-      // Cleanup logic
-      console.log('Component unmounted');
-    };
-  }, []);
-
-  const handleAction = async () => {
-    setLoading(true);
-    try {
-      // Perform action
-      const result = await performAction();
-      setData(result);
-      onAction?.(result);
-    } catch (error) {
-      console.error('Action failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className={\`component-wrapper \${className}\`}>
-      <h2>{title}</h2>
-      {description && <p>{description}</p>}
-      
-      <button 
-        onClick={handleAction}
-        disabled={loading}
-        className="action-button"
-      >
-        {loading ? 'Loading...' : 'Perform Action'}
-      </button>
-      
-      {data && (
-        <div className="data-display">
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Helper function
-async function performAction(): Promise<any> {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ success: true, timestamp: Date.now() });
-    }, 1000);
-  });
-}
-
-export default Component;`,
-    tags: ['react', 'typescript', 'component', 'hooks'],
-    featured: true
-  },
-  {
-    id: 'env-template',
-    title: 'Environment Variables',
-    description: 'Template for environment configuration files',
-    category: 'config',
-    language: 'bash',
-    filename: '.env',
-    content: `# Application Configuration
-NODE_ENV=development
-PORT=3000
-HOST=localhost
-
-# Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/database_name
-REDIS_URL=redis://localhost:6379
-
-# API Keys (Never commit real keys!)
-API_KEY=your_api_key_here
-SECRET_KEY=your_secret_key_here
-JWT_SECRET=your_jwt_secret_here
-
-# External Services
-STRIPE_SECRET_KEY=sk_test_your_stripe_key
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
-
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-
-# Frontend URLs
-CLIENT_URL=http://localhost:3000
-ADMIN_URL=http://localhost:3001
-
-# Feature Flags
-ENABLE_LOGGING=true
-ENABLE_RATE_LIMITING=false
-DEBUG_MODE=true`,
-    tags: ['config', 'environment', 'secrets', 'variables'],
-    featured: false
-  },
-  {
-    id: 'dockerfile',
-    title: 'Dockerfile Template',
-    description: 'Multi-stage Dockerfile for Node.js applications',
-    category: 'config',
-    language: 'dockerfile',
-    filename: 'Dockerfile',
-    content: `# Multi-stage Dockerfile for Node.js application
-# Stage 1: Build stage
-FROM node:18-alpine AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
-COPY . .
-
-# Build application (if needed)
-RUN npm run build
-
-# Stage 2: Production stage
-FROM node:18-alpine AS production
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Set working directory
-WORKDIR /app
-
-# Copy built application from builder stage
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-
-# Switch to non-root user
-USER nextjs
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
-  CMD curl -f http://localhost:3000/health || exit 1
-
-# Start application
-CMD ["npm", "start"]`,
-    tags: ['docker', 'container', 'deployment', 'config'],
-    featured: false
-  },
-  {
-    id: 'gitignore',
-    title: '.gitignore Template',
-    description: 'Comprehensive .gitignore for Node.js and web projects',
-    category: 'config',
-    language: 'text',
-    filename: '.gitignore',
-    content: `# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Production builds
-dist/
-build/
-.next/
-out/
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-.nyc_output/
-
-# Dependency directories
-jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Next.js build output
-.next
-
-# Nuxt.js build / generate output
-.nuxt
-
-# Storybook build outputs
-.out
-.storybook-out
-
-# Temporary folders
-tmp/
-temp/`,
-    tags: ['config', 'git', 'ignore', 'files'],
-    featured: false
-  }
-];
+const templates = getAllTemplates();
 
 const categories = ['all', 'server', 'config', 'component', 'utility'];
-const languages = ['all', 'javascript', 'typescript', 'json', 'bash', 'dockerfile', 'text'];
+const languages = ['all', 'javascript', 'typescript', 'python', 'json', 'bash', 'dockerfile', 'text'];
 
 export default function Templates() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<CodeTemplate | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -426,6 +51,16 @@ export default function Templates() {
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  const openModal = (template: CodeTemplate) => {
+    setSelectedTemplate(template);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedTemplate(null);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -521,6 +156,7 @@ export default function Templates() {
                   template={template}
                   onCopy={copyToClipboard}
                   onDownload={downloadTemplate}
+                  onView={openModal}
                   isCopied={copiedId === template.id}
                   getCategoryIcon={getCategoryIcon}
                   index={index}
@@ -545,6 +181,7 @@ export default function Templates() {
                   template={template}
                   onCopy={copyToClipboard}
                   onDownload={downloadTemplate}
+                  onView={openModal}
                   isCopied={copiedId === template.id}
                   getCategoryIcon={getCategoryIcon}
                   index={index}
@@ -562,6 +199,13 @@ export default function Templates() {
           </div>
         )}
       </div>
+
+      {/* Template Modal */}
+      <TemplateModal
+        template={selectedTemplate}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+      />
     </main>
   );
 }
@@ -570,12 +214,13 @@ interface TemplateCardProps {
   template: CodeTemplate;
   onCopy: (content: string, id: string) => void;
   onDownload: (template: CodeTemplate) => void;
+  onView: (template: CodeTemplate) => void;
   isCopied: boolean;
-  getCategoryIcon: (category: string) => JSX.Element;
+  getCategoryIcon: (category: string) => React.ReactElement;
   index: number;
 }
 
-function TemplateCard({ template, onCopy, onDownload, isCopied, getCategoryIcon, index }: TemplateCardProps) {
+function TemplateCard({ template, onCopy, onDownload, onView, isCopied, getCategoryIcon, index }: TemplateCardProps) {
   return (
     <motion.div
       className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors"
@@ -614,11 +259,19 @@ function TemplateCard({ template, onCopy, onDownload, isCopied, getCategoryIcon,
 
       <div className="flex space-x-2">
         <button
+          onClick={() => onView(template)}
+          className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          <span>View</span>
+        </button>
+        
+        <button
           onClick={() => onCopy(template.content, template.id)}
-          className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
         >
           <Copy className="w-4 h-4" />
-          <span>{isCopied ? 'Copied!' : 'Copy'}</span>
+          <span className="sr-only">{isCopied ? 'Copied!' : 'Copy'}</span>
         </button>
         
         <button

@@ -2,132 +2,110 @@
 
 import { ExternalLink, Zap, TrendingUp, BookOpen, User } from 'lucide-react';
 import Link from 'next/link';
+import { getFeaturedProjects, ProjectDetail } from '@/data/projects-data';
+import { ReactNode } from 'react';
 
-const featuredProjects = [
-  {
-    id: 'forexacuity',
-    title: 'ForexAcuity Analytics Dashboard',
-    category: 'fintech',
-    description: 'Real-time forex analytics dashboard with MT5 integration, WebSocket architecture, and subscription payments.',
-    technologies: ['Next.js', 'Express.js', 'Python', 'WebSockets', 'Stripe'],
-    highlights: [
-      'Sub-second real-time data updates',
-      '£250 lifetime subscription model',
-      'Asian Fractal pattern detection'
-    ],
-    metrics: {
-      lines: '15,000+',
-      apis: '25',
-      latency: '<50ms'
-    },
-    image: '/images/forexacuity-preview.jpg',
-    liveUrl: 'https://forexacuity.co.uk',
-    icon: <TrendingUp className="w-6 h-6" />,
-    color: 'from-green-500 to-blue-500'
-  },
-  {
-    id: 'homeeyeclinic',
-    title: 'Home Eye Clinic Website',
-    category: 'business',
-    description: 'Professional website for UK-based home eye care service with multi-channel booking system and responsive design.',
-    technologies: ['Laravel 11', 'Livewire 3', 'PHP 8.2', 'MySQL', 'Tailwind CSS'],
-    highlights: [
-      'Multi-channel booking system',
-      'Responsive design for elderly users',
-      'Email notifications & admin management'
-    ],
-    metrics: {
-      bookings: '50+',
-      uptime: '99.9%',
-      users: 'All ages'
-    },
-    image: '/images/home-eye-clinic-preview.jpg',
-    liveUrl: 'https://homeeyeclinic.co.uk',
-    icon: <User className="w-6 h-6" />,
-    color: 'from-teal-500 to-blue-500'
-  },
-  {
-    id: 'portfolio',
-    title: 'DevHakim Portfolio',
-    category: 'personal',
-    description: 'This portfolio website built with Next.js, showcasing my transition journey and technical projects with interactive features.',
-    technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Supabase'],
-    highlights: [
-      'Responsive design system',
-      'Admin content management',
-      'Real-time updates'
-    ],
-    metrics: {
-      pages: '8',
-      components: '25+',
-      features: 'CMS'
-    },  
-    image: '/images/portfolio-preview.jpg',
-    liveUrl: 'https://devhakim.com',
-    icon: <BookOpen className="w-6 h-6" />,
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    id: 'learning-dashboard',
-    title: 'Full-Stack Learning Dashboard',
-    category: 'learning',
-    description: 'Interactive dashboard tracking my journey from healthcare to software engineering with progress metrics.',
-    technologies: ['React', 'Python', 'FastAPI', 'PostgreSQL', 'Chart.js'],
-    highlights: [
-      'Progress tracking across multiple paths',
-      'Command reference database',
-      'Project timeline visualization'
-    ],
-    metrics: {
-      commands: '100+',
-      projects: '12',
-      hours: '800+'
-    },
-    image: '/images/learning-dashboard-preview.jpg',
-    icon: <BookOpen className="w-6 h-6" />,
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    id: 'healthcare-api',
-    title: 'Healthcare Data API',
-    category: 'business',
-    description: 'RESTful API for healthcare data management with secure authentication and HIPAA compliance considerations.',
-    technologies: ['Django', 'DRF', 'PostgreSQL', 'Redis', 'JWT'],
-    highlights: [
-      'HIPAA-compliant data handling',
-      'Role-based access control',
-      'Audit trail functionality'
-    ],
-    metrics: {
-      endpoints: '40+',
-      models: '15',
-      tests: '90%'
-    },
-    image: '/images/healthcare-api-preview.jpg',
-    icon: <Zap className="w-6 h-6" />,
-    color: 'from-blue-500 to-cyan-500'
-  },
-  {
-    id: 'portfolio',
-    title: 'DevHakim Portfolio',
-    category: 'personal',
-    description: 'This portfolio website built with Next.js, showcasing my transition journey and technical projects.',
-    technologies: ['Next.js', 'TypeScript', 'Tailwind', 'Framer Motion'],
-    highlights: [
-      'Responsive design system',
-      'Interactive command table',
-      'Journey timeline visualization'
-    ],
-    metrics: {
-      pages: '6',
-      components: '20+',
-      performance: '95+'
-    },
-    image: '/images/portfolio-preview.jpg',
-    icon: <User className="w-6 h-6" />,
-    color: 'from-orange-500 to-red-500'
-  }
-];
+// Interface for the featured project format expected by the component
+interface FeaturedProject {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  technologies: string[];
+  highlights: string[];
+  metrics: Record<string, string>;
+  image: string;
+  liveUrl?: string;
+  icon: ReactNode;
+  color: string;
+}
+
+// Mapping function to transform ProjectDetail to FeaturedProject format
+function mapProjectDetailToFeaturedProject(project: ProjectDetail): FeaturedProject {
+  // Define icon and color mappings based on project category and ID
+  const getIconAndColor = (id: string, category: string): { icon: ReactNode; color: string } => {
+    switch (id) {
+      case 'forexacuity':
+        return { icon: <TrendingUp className="w-6 h-6" />, color: 'from-green-500 to-blue-500' };
+      case 'homeeyeclinic':
+        return { icon: <User className="w-6 h-6" />, color: 'from-teal-500 to-blue-500' };
+      case 'portfolio':
+        return { icon: <BookOpen className="w-6 h-6" />, color: 'from-purple-500 to-pink-500' };
+      case 'healthcare-api':
+        return { icon: <Zap className="w-6 h-6" />, color: 'from-blue-500 to-cyan-500' };
+      default:
+        // Default icon based on category
+        switch (category) {
+          case 'fintech':
+            return { icon: <TrendingUp className="w-6 h-6" />, color: 'from-green-500 to-blue-500' };
+          case 'business':
+            return { icon: <User className="w-6 h-6" />, color: 'from-blue-500 to-cyan-500' };
+          case 'personal':
+            return { icon: <BookOpen className="w-6 h-6" />, color: 'from-purple-500 to-pink-500' };
+          case 'learning':
+            return { icon: <BookOpen className="w-6 h-6" />, color: 'from-orange-500 to-red-500' };
+          default:
+            return { icon: <Zap className="w-6 h-6" />, color: 'from-gray-500 to-slate-500' };
+        }
+    }
+  };
+
+  // Generate metrics based on project data
+  const generateMetrics = (project: ProjectDetail): Record<string, string> => {
+    switch (project.id) {
+      case 'forexacuity':
+        return {
+          lines: '15,000+',
+          apis: '25',
+          latency: '<50ms'
+        };
+      case 'homeeyeclinic':
+        return {
+          bookings: '50+',
+          uptime: '99.9%',
+          users: 'All ages'
+        };
+      case 'portfolio':
+        return {
+          pages: '8',
+          components: '25+',
+          features: 'CMS'
+        };
+      case 'healthcare-api':
+        return {
+          endpoints: '40+',
+          models: '15',
+          tests: '90%'
+        };
+      default:
+        return {
+          tech: project.technologies.length.toString(),
+          status: project.status,
+          difficulty: project.difficulty
+        };
+    }
+  };
+
+  const { icon, color } = getIconAndColor(project.id, project.category);
+  
+  return {
+    id: project.id,
+    title: project.title,
+    category: project.category,
+    description: project.description,
+    technologies: project.technologies,
+    highlights: project.highlights,
+    metrics: generateMetrics(project),
+    image: project.imageUrl,
+    liveUrl: project.liveUrl,
+    icon,
+    color
+  };
+}
+
+// Get featured projects and transform them to the expected format
+const featuredProjects = getFeaturedProjects().map(mapProjectDetailToFeaturedProject);
+
 
 const categoryColors = {
   fintech: 'bg-green-500/20 text-green-400 border-green-500/30',
