@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { 
   ArrowLeft, 
   ExternalLink, 
-  Github, 
   Calendar, 
   Tag, 
   Star,
@@ -106,19 +105,6 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
           </div>
 
           <div className="flex gap-4">
-            {project.githubUrl && (
-              <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href={project.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
-              >
-                <Github className="w-5 h-5 mr-2" />
-                View Code
-              </motion.a>
-            )}
             {project.liveUrl && (
               <motion.a
                 whileHover={{ scale: 1.05 }}
@@ -246,43 +232,6 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
         </div>
       </motion.section>
 
-      {/* Technical Details */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
-        className="mb-12"
-      >
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-          <Code className="w-6 h-6 mr-2 text-blue-400" />
-          Technical Implementation
-        </h2>
-        <div className="space-y-8">
-          {project.technicalDetails.map((detail, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-              className="bg-slate-800/50 rounded-xl p-6 border border-slate-700"
-            >
-              <h3 className="text-lg font-semibold text-white mb-3">
-                {detail.title}
-              </h3>
-              <p className="text-gray-300 mb-4 leading-relaxed">
-                {detail.description}
-              </p>
-              {detail.codeExample && (
-                <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-600 overflow-x-auto">
-                  <pre className="text-sm text-gray-300">
-                    <code>{detail.codeExample.trim()}</code>
-                  </pre>
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
 
       {/* Key Learnings */}
       <motion.section

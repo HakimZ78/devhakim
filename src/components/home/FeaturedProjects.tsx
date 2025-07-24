@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink, Github, Zap, TrendingUp, BookOpen, User } from 'lucide-react';
+import { ExternalLink, Zap, TrendingUp, BookOpen, User } from 'lucide-react';
 import Link from 'next/link';
 
 const featuredProjects = [
@@ -22,7 +22,6 @@ const featuredProjects = [
     },
     image: '/images/forexacuity-preview.jpg',
     liveUrl: 'https://forexacuity.co.uk',
-    githubUrl: 'https://github.com/yourusername/fx-platform',
     icon: <TrendingUp className="w-6 h-6" />,
     color: 'from-green-500 to-blue-500'
   },
@@ -85,7 +84,6 @@ const featuredProjects = [
       hours: '800+'
     },
     image: '/images/learning-dashboard-preview.jpg',
-    githubUrl: 'https://github.com/yourusername/learning-dashboard',
     icon: <BookOpen className="w-6 h-6" />,
     color: 'from-purple-500 to-pink-500'
   },
@@ -106,7 +104,6 @@ const featuredProjects = [
       tests: '90%'
     },
     image: '/images/healthcare-api-preview.jpg',
-    githubUrl: 'https://github.com/yourusername/healthcare-api',
     icon: <Zap className="w-6 h-6" />,
     color: 'from-blue-500 to-cyan-500'
   },
@@ -127,7 +124,6 @@ const featuredProjects = [
       performance: '95+'
     },
     image: '/images/portfolio-preview.jpg',
-    githubUrl: 'https://github.com/yourusername/devhakim-portfolio',
     icon: <User className="w-6 h-6" />,
     color: 'from-orange-500 to-red-500'
   }
@@ -222,17 +218,6 @@ export default function FeaturedProjects() {
 
                 {/* Links */}
                 <div className="flex space-x-3">
-                  {project.githubUrl && (
-                    <a 
-                      href={project.githubUrl}
-                      className="flex items-center px-4 py-2 bg-slate-600/50 text-gray-300 rounded-lg hover:bg-slate-600 transition-colors duration-200"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Github className="w-4 h-4 mr-2" />
-                      Code
-                    </a>
-                  )}
                   {project.liveUrl && (
                     <a 
                       href={project.liveUrl}

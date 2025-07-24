@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Github, Linkedin, Mail, Terminal, Heart } from 'lucide-react';
+import { Linkedin, Mail, Terminal, Heart } from 'lucide-react';
 
 const quickLinks = [
   { href: '/projects', label: 'Projects' },
   { href: '/commands', label: 'Commands' },
+  { href: '/templates', label: 'Templates' },
   { href: '/journey', label: 'Journey' },
-  { href: '/blog', label: 'Blog' }
+  { href: '/contact', label: 'Contact' }
 ];
 
 const projectLinks = [
@@ -19,17 +20,12 @@ const projectLinks = [
 
 const socialLinks = [
   {
-    href: 'https://github.com/yourusername',
-    label: 'GitHub',
-    icon: <Github className="w-5 h-5" />
-  },
-  {
-    href: 'https://linkedin.com/in/yourprofile',
+    href: 'https://www.linkedin.com/in/zaehid-hakim-1004016b',
     label: 'LinkedIn',
     icon: <Linkedin className="w-5 h-5" />
   },
   {
-    href: 'mailto:your.email@example.com',
+    href: 'mailto:zaehid.hakim78@gmail.com',
     label: 'Email',
     icon: <Mail className="w-5 h-5" />
   }

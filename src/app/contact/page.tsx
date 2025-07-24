@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Github, Linkedin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Send, CheckCircle } from 'lucide-react';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -101,14 +101,6 @@ export default function Contact() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white">Find me on</h3>
               <div className="flex space-x-4">
-                <a 
-                  href="https://github.com/yourusername" 
-                  className="p-3 bg-gray-700/50 rounded-lg hover:bg-gray-600/50 transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Github className="w-6 h-6 text-gray-300" />
-                </a>
                 <a 
                   href="https://www.linkedin.com/in/zaehid-hakim-1004016b" 
                   className="p-3 bg-blue-600/20 rounded-lg hover:bg-blue-600/30 transition-colors"

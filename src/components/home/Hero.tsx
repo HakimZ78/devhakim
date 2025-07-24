@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, Github, Linkedin, Mail } from 'lucide-react';
+import { ChevronDown, Linkedin, Mail } from 'lucide-react';
 import AnimatedBackground from '@/components/animations/AnimatedBackground';
 
 export default function Hero() {
@@ -121,9 +121,8 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 1.0 }}
         >
           {[
-            { href: "https://github.com/yourusername", icon: Github, label: "GitHub" },
-            { href: "https://linkedin.com/in/yourprofile", icon: Linkedin, label: "LinkedIn" },
-            { href: "mailto:your.email@example.com", icon: Mail, label: "Email" }
+            { href: "https://www.linkedin.com/in/zaehid-hakim-1004016b", icon: Linkedin, label: "LinkedIn" },
+            { href: "mailto:zaehid.hakim78@gmail.com", icon: Mail, label: "Email" }
           ].map(({ href, icon: Icon, label }, index) => (
             <motion.a 
               key={label}

@@ -28,7 +28,14 @@ export function useJourneyData() {
       ])
 
       if (!pathsRes.ok || !milestonesRes.ok || !certificationsRes.ok) {
-        throw new Error('Failed to fetch journey data')
+        // Fallback to empty data instead of throwing error
+        console.warn('Journey API not available, using empty data')
+        setData({
+          learningPaths: [],
+          milestones: [],
+          certifications: []
+        })
+        return
       }
 
       const [learningPaths, milestones, certifications] = await Promise.all([
@@ -39,7 +46,13 @@ export function useJourneyData() {
 
       setData({ learningPaths, milestones, certifications })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      // Fallback to empty data instead of error
+      console.warn('Journey data fetch failed, using empty data:', err)
+      setData({
+        learningPaths: [],
+        milestones: [],
+        certifications: []
+      })
     } finally {
       setLoading(false)
     }
