@@ -142,7 +142,7 @@ export const forexAcuityProject = {
   },
   
   githubUrl: 'https://github.com/yourusername/fx-platform',
-  liveUrl: 'https://forexacuity.com',
+  liveUrl: 'https://forexacuity.co.uk',
   imageUrl: '/images/projects/forexacuity-dashboard.png',
   
   commands: [

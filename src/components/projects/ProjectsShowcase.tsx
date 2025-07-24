@@ -35,7 +35,7 @@ const completedProjects: Project[] = [
       'Asian Fractal pattern detection'
     ],
     githubUrl: 'https://github.com/yourusername/fx-platform',
-    liveUrl: 'https://forexacuity.com',
+    liveUrl: 'https://forexacuity.co.uk',
     imageUrl: '/images/projects/forexacuity-dashboard.png',
     featured: true,
     completionDate: new Date('2024-12-01'),

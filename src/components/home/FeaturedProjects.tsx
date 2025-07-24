@@ -21,7 +21,7 @@ const featuredProjects = [
       latency: '<50ms'
     },
     image: '/images/forexacuity-preview.jpg',
-    liveUrl: 'https://forexacuity.com',
+    liveUrl: 'https://forexacuity.co.uk',
     githubUrl: 'https://github.com/yourusername/fx-platform',
     icon: <TrendingUp className="w-6 h-6" />,
     color: 'from-green-500 to-blue-500'
