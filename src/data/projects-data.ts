@@ -6,7 +6,6 @@ export interface ProjectDetail {
   category: 'learning' | 'fintech' | 'business' | 'personal';
   technologies: string[];
   highlights: string[];
-  githubUrl?: string;
   liveUrl?: string;
   imageUrl: string;
   featured: boolean;
@@ -22,11 +21,6 @@ export interface ProjectDetail {
     title: string;
     description: string;
     solution: string;
-  }>;
-  technicalDetails: Array<{
-    title: string;
-    description: string;
-    codeExample?: string;
   }>;
   keyLearnings: string[];
   futureEnhancements: string[];
@@ -51,7 +45,6 @@ export const projectsData: ProjectDetail[] = [
       'Asian Fractal pattern detection',
       'Multi-timeframe analysis'
     ],
-    githubUrl: 'https://github.com/yourusername/fx-platform',
     liveUrl: 'https://forexacuity.co.uk',
     imageUrl: '/images/projects/forexacuity-dashboard.png',
     featured: true,
@@ -80,118 +73,6 @@ export const projectsData: ProjectDetail[] = [
         title: 'Scalable Architecture',
         description: 'Building a system that can handle multiple users and high-frequency data without performance degradation.',
         solution: 'Adopted microservices architecture with separate services for data ingestion, processing, and client communication. Used Docker for containerization and implemented horizontal scaling strategies.'
-      }
-    ],
-    
-    technicalDetails: [
-      {
-        title: 'WebSocket Implementation',
-        description: 'Real-time bidirectional communication between server and clients for live market data.',
-        codeExample: `
-// WebSocket server implementation
-const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL }
-});
-
-io.on('connection', (socket) => {
-  socket.on('subscribe_pair', (pair) => {
-    socket.join(\`market_\${pair}\`);
-    // Send latest data immediately
-    socket.emit('market_data', getLatestData(pair));
-  });
-  
-  socket.on('unsubscribe_pair', (pair) => {
-    socket.leave(\`market_\${pair}\`);
-  });
-});
-
-// Broadcast market updates
-setInterval(() => {
-  const updates = fetchMarketUpdates();
-  updates.forEach(update => {
-    io.to(\`market_\${update.pair}\`).emit('market_data', update);
-  });
-}, 500); // 500ms intervals for real-time feel
-        `
-      },
-      {
-        title: 'Pattern Detection Algorithm',
-        description: 'Custom implementation of Asian Fractal pattern recognition using price action analysis.',
-        codeExample: `
-def detect_asian_fractal(candles, lookback=20):
-    """
-    Detect Asian Fractal patterns in price data
-    """
-    fractals = []
-    
-    for i in range(lookback, len(candles) - lookback):
-        high = candles[i]['high']
-        low = candles[i]['low']
-        
-        # Check if current candle is a fractal high
-        is_fractal_high = all(
-            high >= candles[j]['high'] 
-            for j in range(i - lookback, i + lookback + 1) 
-            if j != i
-        )
-        
-        # Check if current candle is a fractal low  
-        is_fractal_low = all(
-            low <= candles[j]['low'] 
-            for j in range(i - lookback, i + lookback + 1) 
-            if j != i
-        )
-        
-        if is_fractal_high or is_fractal_low:
-            fractals.append({
-                'index': i,
-                'type': 'high' if is_fractal_high else 'low',
-                'price': high if is_fractal_high else low,
-                'timestamp': candles[i]['timestamp']
-            })
-    
-    return fractals
-        `
-      },
-      {
-        title: 'Data Pipeline Architecture',
-        description: 'Efficient data flow from MT5 through processing to client delivery.',
-        codeExample: `
-# Data pipeline using asyncio and queues
-import asyncio
-from asyncio import Queue
-
-class ForexDataPipeline:
-    def __init__(self):
-        self.raw_data_queue = Queue()
-        self.processed_data_queue = Queue()
-        
-    async def mt5_data_collector(self):
-        """Continuously collect data from MT5"""
-        while True:
-            try:
-                ticks = mt5.copy_ticks_from('EURUSD', 
-                                          datetime.now(), 
-                                          100, 
-                                          mt5.COPY_TICKS_ALL)
-                await self.raw_data_queue.put(ticks)
-                await asyncio.sleep(0.1)
-            except Exception as e:
-                logger.error(f"MT5 data collection error: {e}")
-                
-    async def data_processor(self):
-        """Process raw data and detect patterns"""
-        while True:
-            raw_data = await self.raw_data_queue.get()
-            processed = self.analyze_ticks(raw_data)
-            await self.processed_data_queue.put(processed)
-            
-    async def websocket_broadcaster(self):
-        """Send processed data to connected clients"""
-        while True:
-            data = await self.processed_data_queue.get()
-            await self.broadcast_to_clients(data)
-        `
       }
     ],
     
@@ -245,7 +126,6 @@ class ForexDataPipeline:
       'Responsive design for elderly demographic',
       'NHS and private service integration'
     ],
-    githubUrl: 'https://github.com/yourusername/homeeyeclinic',
     liveUrl: 'https://homeeyeclinic.co.uk',
     imageUrl: '/images/projects/home-eye-clinic-preview.jpg',
     featured: true,
@@ -274,102 +154,6 @@ class ForexDataPipeline:
         title: 'Email Notifications',
         description: 'Reliable email delivery for appointment confirmations and admin notifications.',
         solution: 'Integrated with reliable email service provider, implemented queue system for email processing, and added proper error handling and retry logic.'
-      }
-    ],
-    
-    technicalDetails: [
-      {
-        title: 'Livewire Booking Components',
-        description: 'Reactive booking forms with real-time validation and user feedback.',
-        codeExample: `
-<?php
-
-namespace App\\Http\\Livewire;
-
-use Livewire\\Component;
-use App\\Models\\Booking;
-use App\\Mail\\BookingConfirmation;
-use Illuminate\\Support\\Facades\\Mail;
-
-class BookingForm extends Component
-{
-    public $name;
-    public $email;
-    public $phone;
-    public $preferred_date;
-    public $service_type;
-    public $notes;
-    
-    protected $rules = [
-        'name' => 'required|min:2',
-        'email' => 'required|email',
-        'phone' => 'required|regex:/^([0-9\\s\\-\\+\\(\\)]*)$/',
-        'preferred_date' => 'required|date|after:today',
-        'service_type' => 'required|in:eye_test,contact_lens,diabetic',
-    ];
-    
-    public function submitBooking()
-    {
-        $this->validate();
-        
-        $booking = Booking::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'preferred_date' => $this->preferred_date,
-            'service_type' => $this->service_type,
-            'notes' => $this->notes,
-            'status' => 'pending'
-        ]);
-        
-        // Send confirmation emails
-        Mail::to($this->email)->send(new BookingConfirmation($booking));
-        Mail::to(config('mail.admin_email'))->send(new NewBookingNotification($booking));
-        
-        session()->flash('success', 'Booking submitted successfully!');
-        $this->reset();
-    }
-    
-    public function render()
-    {
-        return view('livewire.booking-form');
-    }
-}
-        `
-      },
-      {
-        title: 'Responsive Design System',
-        description: 'Mobile-first design with careful consideration for accessibility.',
-        codeExample: `
-/* Tailwind CSS components for accessibility */
-@layer components {
-  .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300;
-  }
-  
-  .form-input {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200;
-  }
-  
-  .section-header {
-    @apply text-3xl md:text-4xl font-bold text-gray-800 mb-6 leading-tight;
-  }
-  
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    .btn-primary {
-      @apply border-2 border-white;
-    }
-  }
-  
-  /* Reduced motion support */
-  @media (prefers-reduced-motion: reduce) {
-    .transition-all {
-      transition: none;
-    }
-  }
-}
-        `
       }
     ],
     
@@ -405,7 +189,6 @@ class BookingForm extends Component
       'localStorage persistence',
       'Phase-based implementation'
     ],
-    githubUrl: 'https://github.com/yourusername/devhakim-portfolio',
     liveUrl: 'https://devhakim.com',
     imageUrl: '/images/projects/portfolio-preview.jpg',
     featured: true,
@@ -434,116 +217,6 @@ class BookingForm extends Component
         title: 'Mobile-First Responsive Design',
         description: 'Ensuring excellent user experience across all device sizes and orientations.',
         solution: 'Used Tailwind CSS for systematic responsive design, tested extensively on real devices, and implemented touch-friendly interactions.'
-      }
-    ],
-    
-    technicalDetails: [
-      {
-        title: 'State Management with Zustand',
-        description: 'Lightweight state management for user preferences and data persistence.',
-        codeExample: `
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
-interface PortfolioState {
-  skills: Skill[];
-  timelineEvents: TimelineEvent[];
-  preferences: UserPreferences;
-  addSkill: (skill: Skill) => void;
-  updateSkill: (id: string, updates: Partial<Skill>) => void;
-  addTimelineEvent: (event: TimelineEvent) => void;
-  updatePreferences: (preferences: Partial<UserPreferences>) => void;
-}
-
-export const usePortfolioStore = create<PortfolioState>()(
-  persist(
-    (set, get) => ({
-      skills: defaultSkills,
-      timelineEvents: defaultTimelineEvents,
-      preferences: defaultPreferences,
-      
-      addSkill: (skill) =>
-        set((state) => ({
-          skills: [...state.skills, { ...skill, id: generateId() }],
-        })),
-        
-      updateSkill: (id, updates) =>
-        set((state) => ({
-          skills: state.skills.map((skill) =>
-            skill.id === id ? { ...skill, ...updates } : skill
-          ),
-        })),
-        
-      addTimelineEvent: (event) =>
-        set((state) => ({
-          timelineEvents: [...state.timelineEvents, { ...event, id: generateId() }]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-        })),
-        
-      updatePreferences: (preferences) =>
-        set((state) => ({
-          preferences: { ...state.preferences, ...preferences },
-        })),
-    }),
-    {
-      name: 'portfolio-storage',
-      partialize: (state) => ({
-        skills: state.skills,
-        timelineEvents: state.timelineEvents,
-        preferences: state.preferences,
-      }),
-    }
-  )
-);
-        `
-      },
-      {
-        title: 'Responsive Animation System',
-        description: 'Performance-optimized animations that work across all devices.',
-        codeExample: `
-import { motion, useInView, useReducedMotion } from 'framer-motion';
-
-interface AnimatedSectionProps {
-  children: React.ReactNode;
-  delay?: number;
-}
-
-export const AnimatedSection: React.FC<AnimatedSectionProps> = ({ 
-  children, 
-  delay = 0 
-}) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const shouldReduceMotion = useReducedMotion();
-  
-  const variants = {
-    hidden: { 
-      opacity: 0, 
-      y: shouldReduceMotion ? 0 : 50 
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: shouldReduceMotion ? 0 : 0.6,
-        delay: shouldReduceMotion ? 0 : delay,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
-    }
-  };
-  
-  return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={variants}
-    >
-      {children}
-    </motion.div>
-  );
-};
-        `
       }
     ],
     

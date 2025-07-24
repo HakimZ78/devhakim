@@ -27,6 +27,48 @@ const featuredProjects = [
     color: 'from-green-500 to-blue-500'
   },
   {
+    id: 'homeeyeclinic',
+    title: 'Home Eye Clinic Website',
+    category: 'business',
+    description: 'Professional website for UK-based home eye care service with multi-channel booking system and responsive design.',
+    technologies: ['Laravel 11', 'Livewire 3', 'PHP 8.2', 'MySQL', 'Tailwind CSS'],
+    highlights: [
+      'Multi-channel booking system',
+      'Responsive design for elderly users',
+      'Email notifications & admin management'
+    ],
+    metrics: {
+      bookings: '50+',
+      uptime: '99.9%',
+      users: 'All ages'
+    },
+    image: '/images/home-eye-clinic-preview.jpg',
+    liveUrl: 'https://homeeyeclinic.co.uk',
+    icon: <User className="w-6 h-6" />,
+    color: 'from-teal-500 to-blue-500'
+  },
+  {
+    id: 'portfolio',
+    title: 'DevHakim Portfolio',
+    category: 'personal',
+    description: 'This portfolio website built with Next.js, showcasing my transition journey and technical projects with interactive features.',
+    technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Supabase'],
+    highlights: [
+      'Responsive design system',
+      'Admin content management',
+      'Real-time updates'
+    ],
+    metrics: {
+      pages: '8',
+      components: '25+',
+      features: 'CMS'
+    },  
+    image: '/images/portfolio-preview.jpg',
+    liveUrl: 'https://devhakim.com',
+    icon: <BookOpen className="w-6 h-6" />,
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
     id: 'learning-dashboard',
     title: 'Full-Stack Learning Dashboard',
     category: 'learning',

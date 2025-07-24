@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Filter, ExternalLink, Github, Calendar, Star, TrendingUp, BookOpen, Briefcase, User } from 'lucide-react';
+import { Search, Filter, ExternalLink, Calendar, Star, TrendingUp, BookOpen, Briefcase, User } from 'lucide-react';
 import { forexAcuityProject } from '@/data/forexacuity-showcase';
 
 interface Project {
@@ -12,7 +12,6 @@ interface Project {
   category: 'learning' | 'fintech' | 'business' | 'personal';
   technologies: string[];
   highlights: string[];
-  githubUrl?: string;
   liveUrl?: string;
   imageUrl: string;
   featured: boolean;
@@ -34,7 +33,6 @@ const completedProjects: Project[] = [
       '£250 lifetime subscription model',
       'Asian Fractal pattern detection'
     ],
-    githubUrl: 'https://github.com/yourusername/fx-platform',
     liveUrl: 'https://forexacuity.co.uk',
     imageUrl: '/images/projects/forexacuity-dashboard.png',
     featured: true,
@@ -54,7 +52,6 @@ const completedProjects: Project[] = [
       'Responsive design for elderly user demographic',
       'NHS and private service pricing integration'
     ],
-    githubUrl: 'https://github.com/yourusername/homeeyeclinic',
     liveUrl: 'https://homeeyeclinic.co.uk',
     imageUrl: '/images/projects/home-eye-clinic-preview.jpg',
     featured: true,
@@ -73,7 +70,6 @@ const completedProjects: Project[] = [
       'Interactive skill and timeline editing',
       'localStorage persistence'
     ],
-    githubUrl: 'https://github.com/yourusername/devhakim-portfolio',
     liveUrl: 'https://devhakim.com',
     imageUrl: '/images/projects/portfolio-preview.jpg',
     featured: true,
@@ -96,7 +92,6 @@ const plannedProjects: Project[] = [
       'Async database operations',
       'Comprehensive test coverage'
     ],
-    githubUrl: '',
     imageUrl: '/images/projects/task-manager-preview.jpg',
     featured: false,
     completionDate: new Date('2025-03-01'),
@@ -114,7 +109,6 @@ const plannedProjects: Project[] = [
       'Role-based access control system',
       'Comprehensive audit trail functionality'
     ],
-    githubUrl: '',
     imageUrl: '/images/projects/healthcare-api-preview.jpg',
     featured: false,
     completionDate: new Date('2025-04-01'),
@@ -132,7 +126,6 @@ const plannedProjects: Project[] = [
       'Inventory management system',
       'Order tracking functionality'
     ],
-    githubUrl: '',
     imageUrl: '/images/projects/ecommerce-preview.jpg',
     featured: false,
     completionDate: new Date('2025-05-01'),
@@ -150,7 +143,6 @@ const plannedProjects: Project[] = [
       'Portfolio performance analytics',
       'Price alert notifications'
     ],
-    githubUrl: '',
     imageUrl: '/images/projects/crypto-tracker-preview.jpg',
     featured: false,
     completionDate: new Date('2025-06-01'),
@@ -168,7 +160,6 @@ const plannedProjects: Project[] = [
       'Conversational AI interface',
       'Vector database integration'
     ],
-    githubUrl: '',
     imageUrl: '/images/projects/ai-chatbot-preview.jpg',
     featured: false,
     completionDate: new Date('2025-07-01'),
@@ -177,7 +168,12 @@ const plannedProjects: Project[] = [
   }
 ];
 
-const allProjects: Project[] = [...completedProjects, ...plannedProjects];
+// Sort projects by status: completed → in-progress → planning
+const allProjects: Project[] = [
+  ...completedProjects.filter(p => p.status === 'completed'),
+  ...completedProjects.filter(p => p.status === 'in-progress'),
+  ...plannedProjects.filter(p => p.status === 'planning')
+];
 
 const categoryInfo = {
   learning: {
@@ -454,17 +450,6 @@ export default function ProjectsShowcase() {
                       <BookOpen className="w-4 h-4 mr-2" />
                       Details
                     </Link>
-                    {project.githubUrl && (
-                      <a
-                        href={project.githubUrl}
-                        className="flex items-center px-3 py-2 bg-slate-600/50 text-gray-300 rounded-lg hover:bg-slate-600 transition-colors duration-200 text-sm"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Github className="w-4 h-4 mr-2" />
-                        Code
-                      </a>
-                    )}
                     {project.liveUrl && (
                       <a
                         href={project.liveUrl}
