@@ -1,27 +1,36 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static export for IONOS deployment
-  output: 'export',
+  // For VPS deployment - use full Next.js features (SSR, API routes)
+  // Comment out for static export if needed
   
-  // Add trailing slash for static hosting
-  trailingSlash: true,
+  // Uncomment these lines ONLY if you want static export:
+  // output: 'export',
+  // trailingSlash: true,
+  // images: { unoptimized: true },
   
-  // Disable image optimization for static export
+  // For VPS deployment with full features:
   images: {
-    unoptimized: true
+    domains: ['localhost', 'devhakim.com'],
   },
   
-  // Optional: Add base path if deploying to subdirectory
-  // basePath: '/portfolio',
-  
-  // Optional: Asset prefix for CDN
-  // assetPrefix: 'https://your-cdn.com',
-  
-  // Disable server-side features for static export
-  experimental: {
-    // Disable app dir middleware for static export
-    middlewareFile: false
-  }
+  // Optional: Add custom headers
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

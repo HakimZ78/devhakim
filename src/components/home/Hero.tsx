@@ -17,7 +17,7 @@ export default function Hero() {
   }, [roles.length]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-16 md:pt-0">
       {/* Animated Background */}
       <AnimatedBackground variant="particles" intensity="medium" />
       

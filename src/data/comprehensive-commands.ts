@@ -34,7 +34,8 @@ export type CommandCategory =
   | 'pm2'
   | 'ssl'
   | 'backup'
-  | 'troubleshooting';
+  | 'troubleshooting'
+  | 'browser';
 
 export const comprehensiveCommands: Command[] = [
   // ==================== PROJECT INITIALIZATION ====================
@@ -701,6 +702,30 @@ export const comprehensiveCommands: Command[] = [
     relatedTo: 'web'
   },
   {
+    id: 'net-6',
+    category: 'networking',
+    command: 'curl -k',
+    description: 'Test HTTPS endpoints bypassing SSL verification',
+    example: 'curl -k -I https://devhakim.com # Test HTTPS with insecure flag',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'intermediate',
+    tags: ['networking', 'https', 'ssl', 'troubleshooting'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'net-7',
+    category: 'networking',
+    command: 'curl redirect test',
+    description: 'Test HTTP to HTTPS redirects',
+    example: 'curl -I http://devhakim.com # Check if HTTP redirects to HTTPS',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['networking', 'redirects', 'https', 'testing'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
     id: 'net-5',
     category: 'networking',
     command: 'nslookup',
@@ -823,6 +848,42 @@ export const comprehensiveCommands: Command[] = [
     tags: ['ssl', 'certificates', 'management'],
     relatedTo: 'web',
     projectSource: 'IONOS Deployment'
+  },
+  {
+    id: 'ssl-4',
+    category: 'ssl',
+    command: 'openssl s_client',
+    description: 'Check SSL certificate details and validation',
+    example: 'echo | openssl s_client -connect devhakim.com:443 -servername devhakim.com 2>/dev/null | openssl x509 -noout -subject -dates',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'advanced',
+    tags: ['ssl', 'certificates', 'validation', 'troubleshooting'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'ssl-5',
+    category: 'ssl',
+    command: 'certbot --reinstall',
+    description: 'Reinstall SSL certificate and fix nginx configuration',
+    example: 'sudo certbot --nginx -d devhakim.com -d www.devhakim.com --reinstall',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'intermediate',
+    tags: ['ssl', 'certificates', 'nginx', 'troubleshooting'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'ssl-6',
+    category: 'ssl',
+    command: 'systemctl list-timers',
+    description: 'Check systemd timers including SSL auto-renewal',
+    example: 'systemctl list-timers | grep certbot # Check certbot auto-renewal status',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'intermediate',
+    tags: ['ssl', 'systemd', 'automation', 'monitoring'],
+    relatedTo: 'linux',
+    projectSource: 'DevHakim Portfolio'
   },
 
   // ==================== SECURITY/FIREWALL COMMANDS ====================
@@ -972,6 +1033,118 @@ export const comprehensiveCommands: Command[] = [
     difficulty: 'beginner',
     tags: ['troubleshooting', 'logs', 'monitoring'],
     relatedTo: 'linux'
+  },
+  {
+    id: 'trouble-5',
+    category: 'troubleshooting',
+    command: 'ps aux | grep',
+    description: 'Find specific processes by name',
+    example: 'ps aux | grep nginx # Find nginx processes\nps aux | grep node # Find Node.js processes',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['troubleshooting', 'processes', 'filtering'],
+    relatedTo: 'linux',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'trouble-6',
+    category: 'troubleshooting',
+    command: 'groups',
+    description: 'Check user group membership',
+    example: 'groups # Show current user groups\ngroups username # Show specific user groups',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['troubleshooting', 'permissions', 'users'],
+    relatedTo: 'linux',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'trouble-7',
+    category: 'troubleshooting',
+    command: 'crontab -l',
+    description: 'List user cron jobs',
+    example: 'crontab -l 2>/dev/null | grep certbot # Check certbot cron jobs',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'intermediate',
+    tags: ['troubleshooting', 'cron', 'automation'],
+    relatedTo: 'linux',
+    projectSource: 'DevHakim Portfolio'
+  },
+
+  // ==================== DEPLOYMENT COMMANDS ====================
+  {
+    id: 'deploy-1',
+    category: 'deployment',
+    command: 'VPS deployment pipeline',
+    description: 'Complete deployment process for VPS',
+    example: 'cd /var/www/devhakim && git pull && npm install && npm run build && pm2 restart devhakim',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'intermediate',
+    tags: ['deployment', 'vps', 'git', 'npm', 'pm2'],
+    relatedTo: 'devops',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'deploy-2',
+    category: 'deployment',
+    command: './deploy.sh',
+    description: 'Run automated deployment script',
+    example: './deploy.sh # Execute deployment script with progress indicators',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['deployment', 'automation', 'scripts'],
+    relatedTo: 'devops',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'deploy-3',
+    category: 'deployment',
+    command: 'SSH VPS connection',
+    description: 'Connect to IONOS VPS with custom port',
+    example: 'ssh -p 2222 forexuser@217.154.33.169 # Connect to DevHakim VPS',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['ssh', 'vps', 'ionos', 'connection'],
+    relatedTo: 'devops',
+    projectSource: 'DevHakim Portfolio'
+  },
+
+  // ==================== BROWSER/CLIENT COMMANDS ====================
+  {
+    id: 'browser-1',
+    category: 'browser',
+    command: 'Chrome cache clear',
+    description: 'Clear browser cache and site data on macOS',
+    example: 'Cmd + Shift + Delete # Chrome cache clear shortcut\nchrome://settings/content/all # Site data management',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['browser', 'cache', 'macos', 'troubleshooting'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'browser-2',
+    category: 'browser',
+    command: 'Hard refresh',
+    description: 'Force browser to reload ignoring cache',
+    example: 'Cmd + Shift + R # macOS hard refresh\nCtrl + Shift + R # Windows/Linux hard refresh',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['browser', 'refresh', 'cache', 'shortcuts'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
+  },
+  {
+    id: 'browser-3',
+    category: 'browser',
+    command: 'Safari cache clear',
+    description: 'Clear Safari cache on macOS',
+    example: 'Cmd + Option + E # Clear Safari cache\nSafari → Develop → Empty Caches',
+    dateLearned: new Date('2025-07-24'),
+    difficulty: 'beginner',
+    tags: ['browser', 'safari', 'cache', 'macos'],
+    relatedTo: 'web',
+    projectSource: 'DevHakim Portfolio'
   },
 
   // ==================== DOCKER COMMANDS ====================
