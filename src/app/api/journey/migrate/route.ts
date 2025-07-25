@@ -21,9 +21,9 @@ export async function POST() {
       id: path.id,
       title: path.title,
       description: path.description,
-      technologies: [], // Add empty array for technologies
+      icon: path.icon,
+      color: path.color,
       progress: path.progress,
-      milestones: path.path_steps?.map(step => step.title) || [],
       order_index: path.order_index
     }))
 
@@ -36,15 +36,16 @@ export async function POST() {
       throw pathsError
     }
 
-    // Migrate Milestones (convert to timeline format)
+    // Migrate Milestones
     const milestonesData = journeyData.milestones.map(milestone => ({
       id: milestone.id,
-      date: milestone.target_date,
       title: milestone.title,
       description: milestone.description,
-      status: milestone.completed ? 'completed' : (milestone.progress > 0 ? 'in-progress' : 'upcoming'), 
+      target_date: milestone.target_date,
+      completed: milestone.completed,
+      completion_date: milestone.completion_date || null,
+      progress: milestone.progress,
       category: milestone.category.toLowerCase(),
-      details: [`Progress: ${milestone.progress}%`],
       order_index: milestone.order_index
     }))
 
@@ -61,9 +62,11 @@ export async function POST() {
     const certificationsData = journeyData.certifications.map(cert => ({
       id: cert.id,
       title: cert.title,
-      issuer: cert.provider,
-      date_earned: cert.completion_date || cert.expected_date || '',
+      provider: cert.provider,
       description: cert.description,
+      status: cert.status,
+      completion_date: cert.completion_date || null,
+      expected_date: cert.expected_date || null,
       skills: cert.skills,
       order_index: cert.order_index
     }))
