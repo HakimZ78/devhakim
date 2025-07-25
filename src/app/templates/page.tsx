@@ -1,23 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Download, Search, Filter, Code, FileText, Settings, Zap, Eye } from 'lucide-react';
-import { getAllTemplates, getFeaturedTemplates, CodeTemplate } from '@/data/templates-data';
+import { Copy, Download, Search, Filter, Code, FileText, Settings, Zap, Eye, Loader2 } from 'lucide-react';
 import TemplateModal from '@/components/templates/TemplateModal';
-
-const templates = getAllTemplates();
+import { CodeTemplate } from '@/data/templates-data';
 
 const categories = ['all', 'server', 'config', 'component', 'utility'];
 const languages = ['all', 'javascript', 'typescript', 'python', 'json', 'bash', 'dockerfile', 'text'];
 
 export default function Templates() {
+  const [templates, setTemplates] = useState<CodeTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLanguage, setSelectedLanguage] = useState('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<CodeTemplate | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const loadTemplates = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/templates');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setTemplates(Array.isArray(result.data) ? result.data : []);
+      } else {
+        console.error('Failed to load templates:', result);
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,6 +93,17 @@ export default function Templates() {
       default: return <FileText className="w-4 h-4" />;
     }
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-20 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
+          <p className="text-gray-400">Loading templates...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-20 pb-16">

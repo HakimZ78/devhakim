@@ -1,112 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle, Circle, ArrowRight, Calendar, Target, Edit3, Save, X, Plus } from 'lucide-react';
+import { CheckCircle, Circle, ArrowRight, Calendar, Target, Edit3, Save, X, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import AdminOnly from '@/components/admin/AdminOnly';
 
 interface TimelineEvent {
-  id: number;
+  id: string;
   date: string;
   title: string;
   description: string;
   status: 'completed' | 'in-progress' | 'upcoming';
   category: string;
   details: string[];
-  isEditing: boolean;
+  order_index?: number;
 }
 
-const initialTimelineEvents: TimelineEvent[] = [
-  {
-    id: 1,
-    date: 'January 2024',
-    title: 'Career Transition Decision',
-    description: 'Made the decision to transition from healthcare (optometry) to software engineering',
-    status: 'completed',
-    category: 'milestone',
-    details: ['Researched career paths', 'Identified fintech opportunity', 'Started learning plan'],
-    isEditing: false
-  },
-  {
-    id: 2,
-    date: 'February 2024',
-    title: 'Programming Foundation',
-    description: 'Started intensive programming learning focusing on full-stack development',
-    status: 'completed',
-    category: 'learning',
-    details: ['Programming basics & OOP', 'FastAPI framework', 'Database fundamentals'],
-    isEditing: false
-  },
-  {
-    id: 3,
-    date: 'March 2024',
-    title: 'MSc Computer Science',
-    description: 'Enrolled in MSc Computer Science conversion course',
-    status: 'completed',
-    category: 'education',
-    details: ['Algorithms & Data Structures', 'Software Engineering', 'Database Systems'],
-    isEditing: false
-  },
-  {
-    id: 4,
-    date: 'June 2024',
-    title: 'First Full-Stack Project',
-    description: 'Built healthcare data management API',
-    status: 'completed',
-    category: 'project',
-    details: ['REST Framework', 'PostgreSQL integration', 'JWT authentication'],
-    isEditing: false
-  },
-  {
-    id: 5,
-    date: 'September 2024',
-    title: 'ForexAcuity Development',
-    description: 'Started building real-time forex analytics dashboard',
-    status: 'completed',
-    category: 'project',
-    details: ['WebSocket architecture', 'MT5 integration', 'Payment processing'],
-    isEditing: false
-  },
-  {
-    id: 6,
-    date: 'December 2024',
-    title: 'ForexAcuity Launch',
-    description: 'Successfully launched production analytics dashboard with paying users',
-    status: 'completed',
-    category: 'milestone',
-    details: ['Production deployment', 'Real-time monitoring', '£250 subscriptions'],
-    isEditing: false
-  },
-  {
-    id: 7,
-    date: 'January 2025',
-    title: 'Portfolio Development',
-    description: 'Building comprehensive portfolio to showcase technical journey',
-    status: 'in-progress',
-    category: 'project',
-    details: ['Next.js portfolio site', 'Command reference table', 'Journey documentation'],
-    isEditing: false
-  },
-  {
-    id: 8,
-    date: 'March 2025',
-    title: 'Job Search & Applications',
-    description: 'Begin applying for full-stack and fintech positions',
-    status: 'upcoming',
-    category: 'milestone',
-    details: ['Resume optimization', 'Interview preparation', 'Technical challenges'],
-    isEditing: false
-  },
-  {
-    id: 9,
-    date: 'Summer 2025',
-    title: 'First Developer Role',
-    description: 'Target: Secure first professional software engineering position',
-    status: 'upcoming',
-    category: 'goal',
-    details: ['Full-stack role', 'Fintech industry preferred', 'Remote-friendly company'],
-    isEditing: false
-  }
-];
+// Timeline events are now fully database-driven - no static fallback data
 
 const statusConfig = {
   completed: {
@@ -135,29 +45,36 @@ const categoryIcons = {
 };
 
 export default function InteractiveJourneyTimeline() {
-  const [events, setEvents] = useState<TimelineEvent[]>(initialTimelineEvents);
+  const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load events from localStorage on component mount
+  // Load events from database on component mount
   useEffect(() => {
-    try {
-      const savedEvents = localStorage.getItem('journeyEvents');
-      if (savedEvents) {
-        setEvents(JSON.parse(savedEvents));
-      }
-    } catch (error) {
-      console.error('Error loading journey events from localStorage:', error);
-    }
+    loadEvents();
   }, []);
 
-  // Save to localStorage whenever events change
-  useEffect(() => {
+  const loadEvents = async () => {
     try {
-      localStorage.setItem('journeyEvents', JSON.stringify(events));
+      setLoading(true);
+      const response = await fetch('/api/timeline-events');
+      const result = await response.json();
+      
+      if (result.success) {
+        setEvents(result.data);
+      } else {
+        console.error('Failed to load timeline events:', result.error);
+        // Show empty state if database fails
+        setEvents([]);
+      }
     } catch (error) {
-      console.error('Error saving journey events to localStorage:', error);
+      console.error('Error loading timeline events:', error);
+      // Show empty state if API fails
+      setEvents([]);
+    } finally {
+      setLoading(false);
     }
-  }, [events]);
+  };
 
   const completedEvents = events.filter(event => event.status === 'completed').length;
   const totalEvents = events.length;
@@ -167,39 +84,141 @@ export default function InteractiveJourneyTimeline() {
     setEditingEvent({ ...event });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingEvent) return;
     
-    setEvents(events.map(event => 
-      event.id === editingEvent.id ? { ...editingEvent, isEditing: false } : event
-    ));
-    setEditingEvent(null);
+    try {
+      const response = await fetch(`/api/timeline-events/${editingEvent.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editingEvent),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setEvents(events.map(event => 
+          event.id === editingEvent.id ? result.data : event
+        ));
+        setEditingEvent(null);
+      } else {
+        console.error('Failed to save event:', result.error);
+        alert('Failed to save changes. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving event:', error);
+      alert('Failed to save changes. Please try again.');
+    }
   };
 
   const handleCancel = () => {
     setEditingEvent(null);
   };
 
-  const handleStatusChange = (eventId: number, newStatus: 'completed' | 'in-progress' | 'upcoming') => {
-    setEvents(events.map(event => 
-      event.id === eventId ? { ...event, status: newStatus } : event
-    ));
+  const handleStatusChange = async (eventId: string, newStatus: 'completed' | 'in-progress' | 'upcoming') => {
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const updatedEvent = { ...event, status: newStatus };
+    
+    try {
+      const response = await fetch(`/api/timeline-events/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedEvent),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setEvents(events.map(event => 
+          event.id === eventId ? result.data : event
+        ));
+      } else {
+        console.error('Failed to update status:', result.error);
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
-  const addNewEvent = () => {
-    const newEvent: TimelineEvent = {
-      id: Math.max(...events.map(e => e.id)) + 1,
+  const addNewEvent = async () => {
+    const newEventData = {
       date: 'New Date',
       title: 'New Milestone',
       description: 'Description of your milestone',
-      status: 'upcoming',
+      status: 'upcoming' as const,
       category: 'project',
       details: ['Add details here'],
-      isEditing: false
     };
-    setEvents([...events, newEvent]);
-    setEditingEvent(newEvent);
+
+    try {
+      const response = await fetch('/api/timeline-events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newEventData),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setEvents([...events, result.data]);
+        setEditingEvent(result.data);
+      } else {
+        console.error('Failed to create event:', result.error);
+        alert('Failed to create new event. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Failed to create new event. Please try again.');
+    }
   };
+
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Are you sure you want to delete this milestone?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/timeline-events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setEvents(events.filter(event => event.id !== eventId));
+        if (editingEvent?.id === eventId) {
+          setEditingEvent(null);
+        }
+      } else {
+        console.error('Failed to delete event:', result.error);
+        alert('Failed to delete milestone. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('Failed to delete milestone. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <section id="journey" className="py-20 px-6 bg-slate-800/30">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading journey timeline...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="journey" className="py-20 px-6 bg-slate-800/30">
@@ -229,13 +248,15 @@ export default function InteractiveJourneyTimeline() {
               View Full Journey
               <ArrowRight className="ml-2 w-4 h-4" />
             </Link>
-            <button
-              onClick={addNewEvent}
-              className="inline-flex items-center px-6 py-3 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-600 transition-all duration-200"
-            >
-              <Plus className="mr-2 w-4 h-4" />
-              Add Milestone
-            </button>
+            <AdminOnly>
+              <button
+                onClick={addNewEvent}
+                className="inline-flex items-center px-6 py-3 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-600 transition-all duration-200"
+              >
+                <Plus className="mr-2 w-4 h-4" />
+                Add Milestone
+              </button>
+            </AdminOnly>
           </div>
         </div>
 
@@ -246,7 +267,21 @@ export default function InteractiveJourneyTimeline() {
 
           {/* Timeline Events */}
           <div className="space-y-8">
-            {events.map((event) => {
+            {events.length === 0 && !loading ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-4">No timeline events found.</p>
+                <AdminOnly>
+                  <button
+                    onClick={addNewEvent}
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+                  >
+                    <Plus className="mr-2 w-4 h-4" />
+                    Add First Event
+                  </button>
+                </AdminOnly>
+              </div>
+            ) : (
+              events.map((event) => {
               const config = statusConfig[event.status];
               const isCurrentlyEditing = editingEvent?.id === event.id;
               
@@ -294,41 +329,55 @@ export default function InteractiveJourneyTimeline() {
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          {/* Status Selector */}
-                          <select
-                            value={event.status}
-                            onChange={(e) => handleStatusChange(event.id, e.target.value as 'completed' | 'in-progress' | 'upcoming')}
-                            className={`px-3 py-1 rounded-full text-xs font-medium border ${config.color} ${config.textColor} bg-slate-700`}
-                          >
-                            <option value="completed">Completed</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="upcoming">Upcoming</option>
-                          </select>
-                          
-                          {/* Edit Button */}
-                          {!isCurrentlyEditing ? (
-                            <button
-                              onClick={() => handleEdit(event)}
-                              className="p-2 text-gray-400 hover:text-white transition-colors duration-200"
+                          <AdminOnly>
+                            {/* Status Selector */}
+                            <select
+                              value={event.status}
+                              onChange={(e) => handleStatusChange(event.id, e.target.value as 'completed' | 'in-progress' | 'upcoming')}
+                              className={`px-3 py-1 rounded-full text-xs font-medium border ${config.color} ${config.textColor} bg-slate-700`}
                             >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                          ) : (
-                            <div className="flex space-x-1">
-                              <button
-                                onClick={handleSave}
-                                className="p-2 text-green-400 hover:text-green-300 transition-colors duration-200"
-                              >
-                                <Save className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={handleCancel}
-                                className="p-2 text-red-400 hover:text-red-300 transition-colors duration-200"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
+                              <option value="completed">Completed</option>
+                              <option value="in-progress">In Progress</option>
+                              <option value="upcoming">Upcoming</option>
+                            </select>
+                            
+                            {/* Action Buttons */}
+                            {!isCurrentlyEditing ? (
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => handleEdit(event)}
+                                  className="p-2 text-gray-400 hover:text-white transition-colors duration-200"
+                                  title="Edit milestone"
+                                >
+                                  <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(event.id)}
+                                  className="p-2 text-gray-400 hover:text-red-400 transition-colors duration-200"
+                                  title="Delete milestone"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={handleSave}
+                                  className="p-2 text-green-400 hover:text-green-300 transition-colors duration-200"
+                                  title="Save changes"
+                                >
+                                  <Save className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={handleCancel}
+                                  className="p-2 text-red-400 hover:text-red-300 transition-colors duration-200"
+                                  title="Cancel editing"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </AdminOnly>
                         </div>
                       </div>
 
@@ -369,7 +418,7 @@ export default function InteractiveJourneyTimeline() {
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         </div>
 
@@ -377,7 +426,7 @@ export default function InteractiveJourneyTimeline() {
         <div className="text-center mt-16">
           <div className="bg-gradient-to-r from-blue-600/20 to-green-600/20 rounded-xl p-8 border border-blue-500/30">
             <Target className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-2">Ready for the Next Challenge</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">Ready to Contribute</h3>
             <p className="text-gray-400 mb-6 leading-relaxed">
               As a healthcare professional and active retail trader transitioning to tech, I bring analytical rigor, patient-focused problem-solving, and experience managing complex systems under pressure. My background spans pharmacy, optometry, and financial markets - providing unique insights for healthcare tech, fintech solutions, and understanding how end-users actually interact with complex systems. This diverse experience led me to build ForexAcuity, a real-time trading analytics platform, solving problems I personally faced as a trader. Looking to contribute these cross-industry perspectives to teams that value diverse backgrounds and foster collaborative learning cultures.
             </p>

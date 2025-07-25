@@ -7,173 +7,19 @@ import { forexAcuityProject } from '@/data/forexacuity-showcase';
 
 interface Project {
   id: string;
+  slug: string;
   title: string;
   description: string;
   category: 'learning' | 'fintech' | 'business' | 'personal';
   technologies: string[];
   highlights: string[];
-  liveUrl?: string;
-  imageUrl: string;
+  live_url?: string;
+  image_url: string;
   featured: boolean;
-  completionDate: Date;
+  completion_date: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   status: 'completed' | 'in-progress' | 'planning';
 }
-
-// Actual completed projects
-const completedProjects: Project[] = [
-  {
-    id: 'forexacuity',
-    title: 'ForexAcuity Analytics Dashboard',
-    description: 'Real-time forex analytics dashboard with MT5 integration, WebSocket architecture, and subscription payments.',
-    category: 'fintech',
-    technologies: ['Next.js', 'Express.js', 'Python', 'WebSockets', 'Stripe'],
-    highlights: [
-      'Sub-second real-time data updates',
-      '£250 lifetime subscription model',
-      'Asian Fractal pattern detection'
-    ],
-    liveUrl: 'https://forexacuity.co.uk',
-    imageUrl: '/images/projects/forexacuity-dashboard.png',
-    featured: true,
-    completionDate: new Date('2024-12-01'),
-    difficulty: 'advanced',
-    status: 'completed'
-  },
-  {
-    id: 'homeeyeclinic',
-    title: 'Home Eye Clinic Website',
-    description: 'Professional website for UK-based home eye care service with multi-channel booking system and responsive design.',
-    category: 'business',
-    technologies: ['Laravel 11', 'Livewire 3', 'PHP 8.2', 'MySQL', 'Tailwind CSS', 'Alpine.js'],
-    highlights: [
-      'Multi-channel booking system (full form, quick booking, callback)',
-      'Email notifications and admin management',
-      'Responsive design for elderly user demographic',
-      'NHS and private service pricing integration'
-    ],
-    liveUrl: 'https://homeeyeclinic.co.uk',
-    imageUrl: '/images/projects/home-eye-clinic-preview.jpg',
-    featured: true,
-    completionDate: new Date('2024-09-30'),
-    difficulty: 'intermediate',
-    status: 'completed'
-  },
-  {
-    id: 'portfolio',
-    title: 'DevHakim Portfolio',
-    description: 'This portfolio website built with Next.js, showcasing my transition journey and technical projects with interactive features.',
-    category: 'personal',
-    technologies: ['Next.js', 'TypeScript', 'Tailwind', 'Framer Motion'],
-    highlights: [
-      'Responsive design system',
-      'Interactive skill and timeline editing',
-      'localStorage persistence'
-    ],
-    liveUrl: 'https://devhakim.com',
-    imageUrl: '/images/projects/portfolio-preview.jpg',
-    featured: true,
-    completionDate: new Date('2025-01-15'),
-    difficulty: 'intermediate',
-    status: 'in-progress'
-  }
-];
-
-// Potential future projects (not yet started)
-const plannedProjects: Project[] = [
-  {
-    id: 'fastapi-task-manager',
-    title: 'FastAPI Task Manager',
-    description: 'A RESTful task management API built with FastAPI, featuring user authentication, task CRUD operations, and data validation.',
-    category: 'learning',
-    technologies: ['FastAPI', 'SQLAlchemy', 'PostgreSQL', 'Pydantic', 'JWT'],
-    highlights: [
-      'OpenAPI documentation generation',
-      'Async database operations',
-      'Comprehensive test coverage'
-    ],
-    imageUrl: '/images/projects/task-manager-preview.jpg',
-    featured: false,
-    completionDate: new Date('2025-03-01'),
-    difficulty: 'beginner',
-    status: 'planning'
-  },
-  {
-    id: 'healthcare-api',
-    title: 'Healthcare Data Management API',
-    description: 'RESTful API for healthcare data management with secure authentication and HIPAA compliance considerations.',
-    category: 'business',
-    technologies: ['Django', 'DRF', 'PostgreSQL', 'Redis', 'JWT'],
-    highlights: [
-      'HIPAA-compliant data handling patterns',
-      'Role-based access control system',
-      'Comprehensive audit trail functionality'
-    ],
-    imageUrl: '/images/projects/healthcare-api-preview.jpg',
-    featured: false,
-    completionDate: new Date('2025-04-01'),
-    difficulty: 'intermediate',
-    status: 'planning'
-  },
-  {
-    id: 'ecommerce-platform',
-    title: 'E-commerce Platform MVP',
-    description: 'A small business e-commerce solution with product catalog, shopping cart, and payment integration.',
-    category: 'business',
-    technologies: ['Django', 'React', 'Stripe', 'PostgreSQL', 'Redis'],
-    highlights: [
-      'Stripe payment integration',
-      'Inventory management system',
-      'Order tracking functionality'
-    ],
-    imageUrl: '/images/projects/ecommerce-preview.jpg',
-    featured: false,
-    completionDate: new Date('2025-05-01'),
-    difficulty: 'intermediate',
-    status: 'planning'
-  },
-  {
-    id: 'crypto-tracker',
-    title: 'Crypto Price Tracker',
-    description: 'Personal cryptocurrency portfolio tracker with real-time price updates and profit/loss calculations.',
-    category: 'personal',
-    technologies: ['React', 'Node.js', 'Express', 'CoinGecko API', 'Chart.js'],
-    highlights: [
-      'Real-time price data integration',
-      'Portfolio performance analytics',
-      'Price alert notifications'
-    ],
-    imageUrl: '/images/projects/crypto-tracker-preview.jpg',
-    featured: false,
-    completionDate: new Date('2025-06-01'),
-    difficulty: 'beginner',
-    status: 'planning'
-  },
-  {
-    id: 'healthcare-ai',
-    title: 'Healthcare AI Assistant',
-    description: 'AI-powered chatbot for basic healthcare information using OpenAI API with healthcare domain knowledge.',
-    category: 'learning',
-    technologies: ['Python', 'OpenAI API', 'Streamlit', 'LangChain', 'Pinecone'],
-    highlights: [
-      'Healthcare-specific knowledge base',
-      'Conversational AI interface',
-      'Vector database integration'
-    ],
-    imageUrl: '/images/projects/ai-chatbot-preview.jpg',
-    featured: false,
-    completionDate: new Date('2025-07-01'),
-    difficulty: 'advanced',
-    status: 'planning'
-  }
-];
-
-// Sort projects by status: completed → in-progress → planning
-const allProjects: Project[] = [
-  ...completedProjects.filter(p => p.status === 'completed'),
-  ...completedProjects.filter(p => p.status === 'in-progress'),
-  ...plannedProjects.filter(p => p.status === 'planning')
-];
 
 const categoryInfo = {
   learning: {
@@ -210,33 +56,51 @@ const categoryInfo = {
   }
 };
 
-const difficultyColors = {
-  beginner: 'text-green-400',
-  intermediate: 'text-yellow-400',
-  advanced: 'text-red-400'
+const statusInfo = {
+  completed: { label: 'Completed', color: 'text-green-400', bg: 'bg-green-500/20' },
+  'in-progress': { label: 'In Progress', color: 'text-blue-400', bg: 'bg-blue-500/20' },
+  planning: { label: 'Planning', color: 'text-gray-400', bg: 'bg-gray-500/20' }
 };
 
-const statusColors = {
-  completed: 'text-green-400',
-  'in-progress': 'text-blue-400',
-  planning: 'text-yellow-400'
+const difficultyInfo = {
+  beginner: { label: 'Beginner', color: 'text-green-400' },
+  intermediate: { label: 'Intermediate', color: 'text-yellow-400' },
+  advanced: { label: 'Advanced', color: 'text-red-400' }
 };
 
 export default function ProjectsShowcase() {
-  const [projects, setProjects] = useState<Project[]>(allProjects);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>(allProjects);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'difficulty' | 'alphabetical'>('date');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
 
-  // Filter and search projects
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/projects');
+      const result = await response.json();
+      
+      if (result.success) {
+        setProjects(result.data);
+        setFilteredProjects(result.data);
+      } else {
+        console.error('Failed to load projects:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let filtered = projects;
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(project => project.category === selectedCategory);
-    }
 
     // Filter by search term
     if (searchTerm) {
@@ -247,218 +111,203 @@ export default function ProjectsShowcase() {
       );
     }
 
-    // Sort projects
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date':
-          return b.completionDate.getTime() - a.completionDate.getTime();
-        case 'difficulty':
-          const diffOrder = { beginner: 1, intermediate: 2, advanced: 3 };
-          return diffOrder[b.difficulty] - diffOrder[a.difficulty];
-        case 'alphabetical':
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(project => project.category === selectedCategory);
+    }
+
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(project => project.status === selectedStatus);
+    }
 
     setFilteredProjects(filtered);
-  }, [projects, selectedCategory, searchTerm, sortBy]);
+  }, [searchTerm, selectedCategory, selectedStatus, projects]);
 
-  const categoryStats = Object.keys(categoryInfo).map(category => ({
-    category,
-    count: projects.filter(p => p.category === category).length,
-    ...categoryInfo[category as keyof typeof categoryInfo]
-  }));
-
-  return (
-    <section className="py-20 px-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">My Projects</h1>
-          <p className="text-xl text-gray-400 mb-8">
-            A showcase of projects built during my journey from healthcare to software engineering
-          </p>
-          
-          {/* Project Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {categoryStats.map(({ category, count, icon, label, bgColor, textColor }) => (
-              <div key={category} className={`${bgColor} backdrop-blur-sm rounded-lg p-4 border border-slate-600/50`}>
-                <div className={`flex items-center justify-center mb-2 ${textColor}`}>
-                  {icon}
-                </div>
-                <div className="text-2xl font-bold text-white">{count}</div>
-                <div className="text-sm text-gray-400">{label}</div>
-              </div>
-            ))}
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading projects...</p>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Filters and Search */}
-        <div className="bg-slate-700/30 backdrop-blur-sm rounded-xl p-6 border border-slate-600/50 mb-12">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+  return (
+    <div className="min-h-screen bg-slate-900 py-20 px-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            My Projects
+          </h1>
+          <p className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
+            A collection of projects showcasing my journey from healthcare to software engineering, 
+            featuring real-world applications in fintech, business solutions, and learning experiments.
+          </p>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 mb-8 border border-slate-700/50">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search projects, technologies..."
+                className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             {/* Category Filter */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  selectedCategory === 'all'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-600/50 text-gray-300 hover:bg-slate-600'
-                }`}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                className="pl-10 pr-8 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:border-blue-500 focus:outline-none appearance-none"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
               >
-                All ({projects.length})
-              </button>
-              {Object.entries(categoryInfo).map(([category, { label, icon, textColor }]) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                    selectedCategory === category
-                      ? `bg-gradient-to-r ${categoryInfo[category as keyof typeof categoryInfo].color} text-white`
-                      : 'bg-slate-600/50 text-gray-300 hover:bg-slate-600'
-                  }`}
-                >
-                  <span className={selectedCategory === category ? 'text-white' : textColor}>
-                    {icon}
-                  </span>
-                  <span>{label} ({projects.filter(p => p.category === category).length})</span>
-                </button>
-              ))}
+                <option value="all">All Categories</option>
+                <option value="fintech">Fintech</option>
+                <option value="business">Business</option>
+                <option value="personal">Personal</option>
+                <option value="learning">Learning</option>
+              </select>
             </div>
 
-            {/* Sort */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'difficulty' | 'alphabetical')}
-              className="px-4 py-3 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="difficulty">Sort by Difficulty</option>
-              <option value="alphabetical">Sort Alphabetically</option>
-            </select>
+            {/* Status Filter */}
+            <div className="relative">
+              <select
+                className="px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:border-blue-500 focus:outline-none appearance-none"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="in-progress">In Progress</option>
+                <option value="planning">Planning</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-4 text-sm text-gray-400">
+            Showing {filteredProjects.length} of {projects.length} projects
           </div>
         </div>
 
         {/* Projects Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProjects.map((project) => {
-            const categoryStyle = categoryInfo[project.category];
-            
+            const categoryData = categoryInfo[project.category];
+            const statusData = statusInfo[project.status];
+            const difficultyData = difficultyInfo[project.difficulty];
+
             return (
               <div
                 key={project.id}
-                className="group bg-slate-700/50 backdrop-blur-sm rounded-xl border border-slate-600/50 overflow-hidden hover:border-slate-500/50 transition-all duration-300 hover:transform hover:scale-[1.02]"
+                className="group bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden hover:border-slate-600/50 transition-all duration-300 hover:transform hover:scale-[1.02]"
               >
-                {/* Project Image/Preview */}
-                <div className="relative h-48 bg-gradient-to-br from-slate-600 to-slate-700 overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${categoryStyle.color} opacity-20`}></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`p-4 rounded-full bg-gradient-to-r ${categoryStyle.color}`}>
-                      <span className="text-white text-2xl">{categoryStyle.icon}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Badges */}
-                  <div className="absolute top-4 left-4 flex flex-col space-y-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${categoryStyle.bgColor} ${categoryStyle.textColor} ${categoryStyle.borderColor}`}>
-                      {categoryStyle.label}
+                {/* Project Preview */}
+                <div className={`h-48 bg-gradient-to-br ${categoryData.color} relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="absolute top-4 left-4 flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryData.bgColor} ${categoryData.textColor} border ${categoryData.borderColor}`}>
+                      {categoryData.label}
                     </span>
                     {project.featured && (
-                      <span className="flex items-center space-x-1 px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-medium border border-yellow-500/30">
-                        <Star className="w-3 h-3" />
-                        <span>Featured</span>
+                      <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full text-xs font-medium flex items-center">
+                        <Star className="w-3 h-3 mr-1" />
+                        Featured
                       </span>
                     )}
                   </div>
-
-                  <div className="absolute top-4 right-4 flex flex-col space-y-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${statusColors[project.status]} bg-slate-700/50`}>
-                      {project.status.replace('-', ' ')}
+                  <div className="absolute bottom-4 right-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusData.bg} ${statusData.color}`}>
+                      {statusData.label}
                     </span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${difficultyColors[project.difficulty]} bg-slate-700/50`}>
-                      {project.difficulty}
-                    </span>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="p-4 bg-white/10 backdrop-blur-sm rounded-full">
+                      <span className="text-white text-2xl">{categoryData.icon}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Project Content */}
+                {/* Project Details */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
                     {project.title}
                   </h3>
-                  
-                  <p className="text-gray-400 mb-4 leading-relaxed text-sm">
+                  <p className="text-gray-400 mb-4 text-sm leading-relaxed">
                     {project.description}
                   </p>
 
                   {/* Technologies */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologies.slice(0, 4).map((tech, index) => (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {project.technologies.slice(0, 3).map((tech, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-slate-600/50 text-gray-300 rounded text-xs border border-slate-500/50"
+                        className="px-2 py-1 bg-slate-700/50 text-gray-300 rounded text-xs border border-slate-600/50"
                       >
                         {tech}
                       </span>
                     ))}
-                    {project.technologies.length > 4 && (
-                      <span className="px-2 py-1 bg-slate-600/50 text-gray-400 rounded text-xs border border-slate-500/50">
-                        +{project.technologies.length - 4} more
+                    {project.technologies.length > 3 && (
+                      <span className="px-2 py-1 bg-slate-600/50 text-gray-400 rounded text-xs">
+                        +{project.technologies.length - 3} more
                       </span>
                     )}
                   </div>
 
                   {/* Highlights */}
-                  <ul className="text-xs text-gray-400 mb-4 space-y-1">
+                  <ul className="text-sm text-gray-400 mb-4 space-y-1">
                     {project.highlights.slice(0, 2).map((highlight, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="w-1 h-1 bg-blue-400 rounded-full mr-2"></span>
+                      <li key={index} className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 mt-2 flex-shrink-0"></span>
                         {highlight}
                       </li>
                     ))}
                   </ul>
 
-                  {/* Date */}
-                  <div className="flex items-center text-xs text-gray-500 mb-4">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {project.completionDate.toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short' 
-                    })}
+                  {/* Footer */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                    <span className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {new Date(project.completion_date).toLocaleDateString('en-GB', {
+                        year: 'numeric',
+                        month: 'short'
+                      })}
+                    </span>
+                    <span className={difficultyData.color}>
+                      {difficultyData.label}
+                    </span>
                   </div>
 
-                  {/* Links */}
-                  <div className="flex space-x-3">
+                  {/* Actions */}
+                  <div className="flex items-center justify-between">
                     <Link
-                      href={`/projects/${project.id}`}
-                      className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 text-sm"
+                      href={`/projects/${project.slug}`}
+                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200"
                     >
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Details
+                      Learn More
                     </Link>
-                    {project.liveUrl && (
+                    {project.live_url && (
                       <a
-                        href={project.liveUrl}
-                        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
+                        href={project.live_url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
                       >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Live
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Live Demo
                       </a>
                     )}
                   </div>
@@ -468,51 +317,48 @@ export default function ProjectsShowcase() {
           })}
         </div>
 
-        {/* No Results */}
+        {/* Empty State */}
         {filteredProjects.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 mb-4">
+            <div className="text-gray-400 mb-4">
               <Search className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">No projects found</h3>
-              <p>Try adjusting your search terms or filters</p>
+              <p>Try adjusting your search terms or filters.</p>
             </div>
             <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedCategory('all');
+                setSelectedStatus('all');
               }}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
               Clear Filters
             </button>
           </div>
         )}
 
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="bg-gradient-to-r from-blue-600/20 to-green-600/20 rounded-xl p-8 border border-blue-500/30">
-            <h3 className="text-2xl font-bold text-white mb-2">Interested in My Work?</h3>
-            <p className="text-gray-400 mb-6">
-              These projects represent my learning journey and problem-solving approach. 
-              Let's discuss how I can contribute to your team.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/contact"
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+        {/* Special Feature: ForexAcuity Deep Dive */}
+        {filteredProjects.some(p => p.id === 'forexacuity') && (
+          <div className="mt-16 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl p-8 border border-green-500/20">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-white mb-2">Featured: ForexAcuity Deep Dive</h3>
+              <p className="text-gray-400">
+                Explore the complete development journey of my flagship fintech project
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Link
+                href="/projects/forexacuity"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-200"
               >
-                Get In Touch
-              </a>
-              <a
-                href="/commands"
-                className="px-6 py-3 border-2 border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-gray-400 hover:text-white transition-colors duration-200"
-              >
-                View Commands Learned
-              </a>
+                <TrendingUp className="w-5 h-5 mr-2" />
+                View Complete Case Study
+              </Link>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 }

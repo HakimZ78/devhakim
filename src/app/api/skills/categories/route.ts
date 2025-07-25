@@ -11,17 +11,12 @@ const supabaseServiceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabaseService = createClient(supabaseServiceUrl, supabaseServiceKey)
 
-export interface Milestone {
+export interface SkillCategory {
   id?: string
   title: string
-  description: string
-  target_date: string
-  completed?: boolean
-  completion_date?: string
-  progress?: number
-  category: string
-  details?: string[]
-  status: 'completed' | 'in-progress' | 'upcoming'
+  skills: string[]
+  color: string
+  icon_name: string
   order_index: number
   created_at?: string
   updated_at?: string
@@ -30,7 +25,7 @@ export interface Milestone {
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from('milestones')
+      .from('skill_categories')
       .select('*')
       .order('order_index', { ascending: true })
 
@@ -39,7 +34,7 @@ export async function GET() {
       // Return fallback data if database isn't available
       return NextResponse.json({
         success: true,
-        data: getDefaultMilestones()
+        data: getDefaultSkillCategories()
       })
     }
 
@@ -52,7 +47,7 @@ export async function GET() {
     console.error('API error:', error)
     return NextResponse.json({
       success: true,
-      data: getDefaultMilestones()
+      data: getDefaultSkillCategories()
     })
   }
 }
@@ -60,49 +55,34 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== POST /api/journey/milestones ===')
-    console.log('Creating new milestone:', JSON.stringify(body, null, 2))
+    console.log('=== POST /api/skills/categories ===')
+    console.log('Creating new skill category:', JSON.stringify(body, null, 2))
     
-    const {
-      title,
-      description,
-      target_date,
-      completed,
-      completion_date,
-      progress,
-      category,
-      details,
-      status
-    } = body
+    const { title, skills, color, icon_name } = body
 
     // Get next order index
-    const { data: existingMilestones } = await supabase
-      .from('milestones')
+    const { data: existingCategories } = await supabase
+      .from('skill_categories')
       .select('order_index')
       .order('order_index', { ascending: false })
       .limit(1)
 
-    const nextOrderIndex = (existingMilestones?.[0]?.order_index || 0) + 1
+    const nextOrderIndex = (existingCategories?.[0]?.order_index || 0) + 1
 
-    const milestoneData = {
+    const categoryData = {
       title,
-      description,
-      target_date,
-      completed: completed || false,
-      completion_date,
-      progress: progress || 0,
-      category,
-      details: details || [],
-      status: status || 'upcoming',
+      skills: skills || [],
+      color,
+      icon_name,
       order_index: nextOrderIndex
     }
 
-    console.log('Prepared milestoneData for DB insert:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared categoryData for DB insert:', JSON.stringify(categoryData, null, 2))
 
     // Use service role client for insert (bypasses RLS)
     const { data, error } = await supabaseService
-      .from('milestones')
-      .insert([milestoneData])
+      .from('skill_categories')
+      .insert([categoryData])
       .select()
       .single()
 
@@ -128,25 +108,25 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== PUT /api/journey/milestones ===')
+    console.log('=== PUT /api/skills/categories ===')
     console.log('Received data from frontend:', JSON.stringify(body, null, 2))
     
     const { id, ...updateData } = body
     
     if (!id) {
-      throw new Error('Milestone ID is required for updates')
+      throw new Error('Skill category ID is required for updates')
     }
 
-    const milestoneData = {
+    const categoryData = {
       ...updateData,
       updated_at: new Date().toISOString()
     }
     
-    console.log('Prepared milestoneData for DB update:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared categoryData for DB update:', JSON.stringify(categoryData, null, 2))
 
-    // Check if milestone exists
+    // Check if category exists
     const { data: existing, error: checkError } = await supabase
-      .from('milestones')
+      .from('skill_categories')
       .select('id, title')
       .eq('id', id)
       .limit(1)
@@ -154,19 +134,19 @@ export async function PUT(request: NextRequest) {
     console.log('Existing record check:', { existing, checkError })
 
     if (!existing || existing.length === 0) {
-      throw new Error('Milestone not found')
+      throw new Error('Skill category not found')
     }
 
-    console.log('=== UPDATING EXISTING MILESTONE ===')
+    console.log('=== UPDATING EXISTING SKILL CATEGORY ===')
     console.log('Current DB title:', existing[0].title)
-    console.log('New title to save:', milestoneData.title)
-    console.log('Milestone ID:', existing[0].id)
+    console.log('New title to save:', categoryData.title)
+    console.log('Category ID:', existing[0].id)
 
     // Use service role client for update (bypasses RLS)
     console.log('Using service role client for update...')
     const { data: updateResult, error: updateError } = await supabaseService
-      .from('milestones')
-      .update(milestoneData)
+      .from('skill_categories')
+      .update(categoryData)
       .eq('id', id)
       .select('*')
 
@@ -201,15 +181,15 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     
     if (!id) {
-      throw new Error('Milestone ID is required for deletion')
+      throw new Error('Skill category ID is required for deletion')
     }
 
-    console.log('=== DELETE /api/journey/milestones ===')
-    console.log('Deleting milestone with ID:', id)
+    console.log('=== DELETE /api/skills/categories ===')
+    console.log('Deleting skill category with ID:', id)
 
     // Use service role client for delete (bypasses RLS)
     const { error } = await supabaseService
-      .from('milestones')
+      .from('skill_categories')
       .delete()
       .eq('id', id)
 
@@ -218,7 +198,7 @@ export async function DELETE(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      message: 'Milestone deleted successfully'
+      message: 'Skill category deleted successfully'
     })
 
   } catch (error) {
@@ -231,71 +211,39 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Fallback data when database is not available
-function getDefaultMilestones(): Milestone[] {
+function getDefaultSkillCategories(): SkillCategory[] {
   return [
     {
       id: '1',
-      title: 'Started Healthcare Career',
-      description: 'Qualified as Pharmacist and Optometrist, beginning professional healthcare journey',
-      target_date: 'July 2010',
-      completed: true,
-      completion_date: 'July 2010',
-      progress: 100,
-      category: 'education',
-      details: ['Completed Pharmacy degree', 'Qualified as Optometrist', 'Started working in healthcare sector'],
-      status: 'completed',
+      title: 'Full-Stack Development',
+      skills: ['Python', 'FastAPI', 'Django', 'React', 'TypeScript', 'Next.js'],
+      color: 'from-blue-500 to-blue-600',
+      icon_name: 'Code',
       order_index: 1
     },
     {
-      id: '2',
-      title: 'Discovered Trading',
-      description: 'Started retail forex trading, sparking interest in financial markets and data analysis',
-      target_date: 'March 2018',
-      completed: true,
-      completion_date: 'March 2018',
-      progress: 100,
-      category: 'milestone',
-      details: ['Began learning technical analysis', 'Started live trading account', 'Discovered passion for data-driven decisions'],
-      status: 'completed',
+      id: '2', 
+      title: 'Trading Analytics & Fintech',
+      skills: ['Real-time Dashboards', 'WebSocket APIs', 'Data Visualization', 'Trading Signals', 'Payment Systems'],
+      color: 'from-green-500 to-green-600',
+      icon_name: 'Zap',
       order_index: 2
     },
     {
       id: '3',
-      title: 'First Coding Experience',
-      description: 'Started learning Python for trading automation and data analysis',
-      target_date: 'January 2023',
-      completed: true,
-      completion_date: 'January 2023',
-      progress: 100,
-      category: 'learning',
-      details: ['Completed Python basics course', 'Built first trading scripts', 'Discovered love for programming'],
-      status: 'completed',
+      title: 'Backend & Data',
+      skills: ['PostgreSQL', 'Supabase', 'Express.js', 'RESTful APIs', 'Database Design'],
+      color: 'from-purple-500 to-purple-600',
+      icon_name: 'Database',
       order_index: 3
     },
     {
       id: '4',
-      title: 'Built ForexAcuity',
-      description: 'Developed comprehensive forex analytics platform with real-time data and pattern recognition',
-      target_date: 'December 2024',
-      completed: true,
-      completion_date: 'December 2024',
-      progress: 100,
-      category: 'project',
-      details: ['Learned Next.js and React', 'Implemented WebSocket architecture', 'Launched with paying customers'],
-      status: 'completed',
+      title: 'DevOps & Tools',
+      skills: ['Docker', 'Git', 'npm Workspaces', 'Monorepo', 'CI/CD'],
+      color: 'from-orange-500 to-orange-600',
+      icon_name: 'Globe',
       order_index: 4
-    },
-    {
-      id: '5',
-      title: 'Career Transition Goal',
-      description: 'Secure first software engineering role, ideally in fintech or healthcare tech',
-      target_date: 'June 2025',
-      completed: false,
-      progress: 75,
-      category: 'goal',
-      details: ['Complete portfolio with admin system', 'Apply to target companies', 'Prepare for technical interviews'],
-      status: 'in-progress',
-      order_index: 5
     }
   ]
 }

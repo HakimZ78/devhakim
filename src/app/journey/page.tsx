@@ -7,12 +7,15 @@ import EditableProgressTracker from '@/components/journey/EditableProgressTracke
 import EditableCertificationsShowcase from '@/components/journey/EditableCertificationsShowcase';
 import AdminToolbar from '@/components/journey/AdminToolbar';
 import { AdminProvider } from '@/contexts/AdminContext';
+import AdminOnly from '@/components/admin/AdminOnly';
 
 export default function JourneyPage() {
   return (
     <AdminProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <AdminToolbar />
+        <AdminOnly>
+          <AdminToolbar />
+        </AdminOnly>
         
         <div className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6">

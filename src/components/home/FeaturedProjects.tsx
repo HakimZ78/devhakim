@@ -2,8 +2,22 @@
 
 import { ExternalLink, Zap, TrendingUp, BookOpen, User } from 'lucide-react';
 import Link from 'next/link';
-import { getFeaturedProjects, ProjectDetail } from '@/data/projects-data';
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
+
+interface ProjectDetail {
+  status: string;
+  difficulty: string;
+  id: string
+  slug: string
+  title: string
+  description: string
+  category: 'learning' | 'fintech' | 'business' | 'personal'
+  technologies: string[]
+  highlights: string[]
+  live_url?: string
+  image_url: string
+  featured: boolean
+}
 
 // Interface for the featured project format expected by the component
 interface FeaturedProject {
@@ -96,15 +110,13 @@ function mapProjectDetailToFeaturedProject(project: ProjectDetail): FeaturedProj
     technologies: project.technologies,
     highlights: project.highlights,
     metrics: generateMetrics(project),
-    image: project.imageUrl,
-    liveUrl: project.liveUrl,
+    image: project.image_url,
+    liveUrl: project.live_url,
     icon,
     color
   };
 }
 
-// Get featured projects and transform them to the expected format
-const featuredProjects = getFeaturedProjects().map(mapProjectDetailToFeaturedProject);
 
 
 const categoryColors = {
@@ -115,6 +127,47 @@ const categoryColors = {
 };
 
 export default function FeaturedProjects() {
+  const [projects, setProjects] = useState<ProjectDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFeaturedProjects();
+  }, []);
+
+  const loadFeaturedProjects = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/projects?featured=true');
+      const result = await response.json();
+      
+      if (result.success) {
+        setProjects(result.data);
+      } else {
+        console.error('Failed to load featured projects:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading featured projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform projects to featured format
+  const featuredProjects = projects.map(mapProjectDetailToFeaturedProject);
+
+  if (loading) {
+    return (
+      <section id="projects" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading featured projects...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="projects" className="py-20 px-6">
       <div className="max-w-6xl mx-auto">

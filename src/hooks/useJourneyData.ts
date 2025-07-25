@@ -38,13 +38,17 @@ export function useJourneyData() {
         return
       }
 
-      const [learningPaths, milestones, certifications] = await Promise.all([
+      const [pathsResult, milestonesResult, certificationsResult] = await Promise.all([
         pathsRes.json(),
         milestonesRes.json(),
         certificationsRes.json()
       ])
 
-      setData({ learningPaths, milestones, certifications })
+      setData({ 
+        learningPaths: pathsResult.data || [],
+        milestones: milestonesResult.data || [],
+        certifications: certificationsResult.data || []
+      })
     } catch (err) {
       // Fallback to empty data instead of error
       console.warn('Journey data fetch failed, using empty data:', err)

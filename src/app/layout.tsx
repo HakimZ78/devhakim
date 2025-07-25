@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navigation from "@/components/layout/Navigation";
-import Footer from "@/components/layout/Footer";
+import { GlobalAdminProvider } from "@/contexts/GlobalAdminContext";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Navigation />
-        {children}
-        <Footer />
+        <GlobalAdminProvider>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
+        </GlobalAdminProvider>
       </body>
     </html>
   );

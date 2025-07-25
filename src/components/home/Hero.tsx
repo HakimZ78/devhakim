@@ -5,19 +5,75 @@ import { motion } from 'framer-motion';
 import { ChevronDown, Linkedin, Mail } from 'lucide-react';
 import AnimatedBackground from '@/components/animations/AnimatedBackground';
 
+interface HeroContent {
+  id?: string
+  name: string
+  subtitle: string
+  roles: string[]
+  description: string
+  primary_cta_text: string
+  primary_cta_link: string
+  secondary_cta_text: string
+  secondary_cta_link: string
+  linkedin_url: string
+  email: string
+}
+
 export default function Hero() {
   const [currentRole, setCurrentRole] = useState(0);
-  const roles = ['Full-Stack Developer', 'Fintech Engineer', 'Python Developer', 'React Developer'];
+  const [heroContent, setHeroContent] = useState<HeroContent | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load hero content from database
+  useEffect(() => {
+    loadHeroContent();
+  }, []);
+
+  const loadHeroContent = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/hero');
+      const result = await response.json();
+      
+      if (result.success) {
+        setHeroContent(result.data);
+      } else {
+        console.error('Failed to load hero content:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading hero content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentRole((prev) => (prev + 1) % roles.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [roles.length]);
+    if (heroContent?.roles) {
+      const interval = setInterval(() => {
+        setCurrentRole((prev) => (prev + 1) % heroContent.roles.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [heroContent?.roles]);
+
+  if (loading) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-20 md:pt-0">
+        <AnimatedBackground variant="particles" intensity="medium" />
+        <div className="text-center relative z-10">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!heroContent) {
+    return null;
+  }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-16 md:pt-0">
+    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-20 md:pt-0">
       {/* Animated Background */}
       <AnimatedBackground variant="particles" intensity="medium" />
       
@@ -30,7 +86,7 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           <motion.h1 
-            className="text-5xl md:text-7xl font-bold text-white mb-4"
+            className="text-4xl md:text-7xl font-bold text-white mb-4"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
@@ -47,7 +103,7 @@ export default function Hero() {
                 ease: "easeInOut"
               }}
             >
-              Hakim
+              {heroContent.name}
             </motion.span>
           </motion.h1>
           
@@ -58,7 +114,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <h2 className="text-xl md:text-2xl text-gray-300">
-              Healthcare → Tech Transition
+              {heroContent.subtitle}
             </h2>
             <div className="text-lg md:text-xl text-gray-400 h-8 flex items-center justify-center">
               Aiming for:{' '}
@@ -70,7 +126,7 @@ export default function Hero() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5 }}
               >
-                {roles[currentRole]}
+                {heroContent.roles[currentRole]}
               </motion.span>
             </div>
           </motion.div>
@@ -82,9 +138,17 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-        >
-          As a healthcare professional and active retail trader transitioning to tech, I bring analytical rigor, patient-focused problem-solving, and experience managing complex systems under pressure. My background spans <span className="text-blue-400 font-semibold">pharmacy, optometry, and financial markets</span> - providing unique insights for healthcare tech, fintech solutions, and understanding how end-users actually interact with complex systems. This diverse experience led me to build <span className="text-green-400 font-semibold">ForexAcuity, a real-time trading analytics platform</span>, solving problems I personally faced as a trader. Looking to contribute these cross-industry perspectives to teams that value diverse backgrounds and foster collaborative learning cultures.
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: heroContent.description.replace(
+            /Pharmacy & Optometry/g,
+            '<span class="text-green-400 font-semibold">Pharmacy & Optometry</span>'
+          ).replace(
+            /Financial Markets/g,
+            '<span class="text-green-400 font-semibold">Financial Markets</span>'
+          ).replace(
+            /ForexAcuity, a real-time trading analytics platform/g,
+            '<span class="text-green-400 font-semibold">ForexAcuity, a real-time trading analytics platform</span>'
+          ) }}
+        />
 
         {/* CTA Buttons */}
         <motion.div 
@@ -94,22 +158,22 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.8 }}
         >
           <motion.a 
-            href="#projects"
+            href={heroContent.primary_cta_link}
             className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            View My Projects
+            {heroContent.primary_cta_text}
           </motion.a>
           <motion.a 
-            href="#journey"
+            href={heroContent.secondary_cta_link}
             className="px-8 py-4 border-2 border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-gray-400 hover:text-white transition-colors duration-200"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            My Learning Journey
+            {heroContent.secondary_cta_text}
           </motion.a>
         </motion.div>
 
@@ -121,8 +185,8 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 1.0 }}
         >
           {[
-            { href: "https://www.linkedin.com/in/zaehid-hakim-1004016b", icon: Linkedin, label: "LinkedIn" },
-            { href: "mailto:zaehid.hakim78@gmail.com", icon: Mail, label: "Email" }
+            { href: heroContent.linkedin_url, icon: Linkedin, label: "LinkedIn" },
+            { href: `mailto:${heroContent.email}`, icon: Mail, label: "Email" }
           ].map(({ href, icon: Icon, label }, index) => (
             <motion.a 
               key={label}

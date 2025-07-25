@@ -274,7 +274,7 @@ export default function EditableProgressTracker() {
       )}
 
       <div className="grid md:grid-cols-2 gap-6">
-        {data.milestones.map((milestone, index) => {
+        {(data.milestones || []).map((milestone, index) => {
         const isEditing = editingMilestone?.id === milestone.id
         const targetDate = new Date(milestone.target_date)
         const isOverdue = !milestone.completed && targetDate < new Date()

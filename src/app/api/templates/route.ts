@@ -11,17 +11,16 @@ const supabaseServiceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabaseService = createClient(supabaseServiceUrl, supabaseServiceKey)
 
-export interface Milestone {
+export interface CodeTemplate {
   id?: string
   title: string
   description: string
-  target_date: string
-  completed?: boolean
-  completion_date?: string
-  progress?: number
   category: string
-  details?: string[]
-  status: 'completed' | 'in-progress' | 'upcoming'
+  language: string
+  filename: string
+  content: string
+  tags: string[]
+  featured: boolean
   order_index: number
   created_at?: string
   updated_at?: string
@@ -30,7 +29,7 @@ export interface Milestone {
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from('milestones')
+      .from('code_templates')
       .select('*')
       .order('order_index', { ascending: true })
 
@@ -39,7 +38,7 @@ export async function GET() {
       // Return fallback data if database isn't available
       return NextResponse.json({
         success: true,
-        data: getDefaultMilestones()
+        data: getDefaultTemplates()
       })
     }
 
@@ -52,7 +51,7 @@ export async function GET() {
     console.error('API error:', error)
     return NextResponse.json({
       success: true,
-      data: getDefaultMilestones()
+      data: getDefaultTemplates()
     })
   }
 }
@@ -60,49 +59,47 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== POST /api/journey/milestones ===')
-    console.log('Creating new milestone:', JSON.stringify(body, null, 2))
+    console.log('=== POST /api/templates ===')
+    console.log('Creating new template:', JSON.stringify(body, null, 2))
     
     const {
       title,
       description,
-      target_date,
-      completed,
-      completion_date,
-      progress,
       category,
-      details,
-      status
+      language,
+      filename,
+      content,
+      tags,
+      featured
     } = body
 
     // Get next order index
-    const { data: existingMilestones } = await supabase
-      .from('milestones')
+    const { data: existingTemplates } = await supabase
+      .from('code_templates')
       .select('order_index')
       .order('order_index', { ascending: false })
       .limit(1)
 
-    const nextOrderIndex = (existingMilestones?.[0]?.order_index || 0) + 1
+    const nextOrderIndex = (existingTemplates?.[0]?.order_index || 0) + 1
 
-    const milestoneData = {
+    const templateData = {
       title,
       description,
-      target_date,
-      completed: completed || false,
-      completion_date,
-      progress: progress || 0,
       category,
-      details: details || [],
-      status: status || 'upcoming',
+      language,
+      filename,
+      content,
+      tags: tags || [],
+      featured: featured || false,
       order_index: nextOrderIndex
     }
 
-    console.log('Prepared milestoneData for DB insert:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared templateData for DB insert:', JSON.stringify(templateData, null, 2))
 
     // Use service role client for insert (bypasses RLS)
     const { data, error } = await supabaseService
-      .from('milestones')
-      .insert([milestoneData])
+      .from('code_templates')
+      .insert([templateData])
       .select()
       .single()
 
@@ -128,25 +125,25 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== PUT /api/journey/milestones ===')
+    console.log('=== PUT /api/templates ===')
     console.log('Received data from frontend:', JSON.stringify(body, null, 2))
     
     const { id, ...updateData } = body
     
     if (!id) {
-      throw new Error('Milestone ID is required for updates')
+      throw new Error('Template ID is required for updates')
     }
 
-    const milestoneData = {
+    const templateData = {
       ...updateData,
       updated_at: new Date().toISOString()
     }
     
-    console.log('Prepared milestoneData for DB update:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared templateData for DB update:', JSON.stringify(templateData, null, 2))
 
-    // Check if milestone exists
+    // Check if template exists
     const { data: existing, error: checkError } = await supabase
-      .from('milestones')
+      .from('code_templates')
       .select('id, title')
       .eq('id', id)
       .limit(1)
@@ -154,19 +151,19 @@ export async function PUT(request: NextRequest) {
     console.log('Existing record check:', { existing, checkError })
 
     if (!existing || existing.length === 0) {
-      throw new Error('Milestone not found')
+      throw new Error('Template not found')
     }
 
-    console.log('=== UPDATING EXISTING MILESTONE ===')
+    console.log('=== UPDATING EXISTING TEMPLATE ===')
     console.log('Current DB title:', existing[0].title)
-    console.log('New title to save:', milestoneData.title)
-    console.log('Milestone ID:', existing[0].id)
+    console.log('New title to save:', templateData.title)
+    console.log('Template ID:', existing[0].id)
 
     // Use service role client for update (bypasses RLS)
     console.log('Using service role client for update...')
     const { data: updateResult, error: updateError } = await supabaseService
-      .from('milestones')
-      .update(milestoneData)
+      .from('code_templates')
+      .update(templateData)
       .eq('id', id)
       .select('*')
 
@@ -201,15 +198,15 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     
     if (!id) {
-      throw new Error('Milestone ID is required for deletion')
+      throw new Error('Template ID is required for deletion')
     }
 
-    console.log('=== DELETE /api/journey/milestones ===')
-    console.log('Deleting milestone with ID:', id)
+    console.log('=== DELETE /api/templates ===')
+    console.log('Deleting template with ID:', id)
 
     // Use service role client for delete (bypasses RLS)
     const { error } = await supabaseService
-      .from('milestones')
+      .from('code_templates')
       .delete()
       .eq('id', id)
 
@@ -218,7 +215,7 @@ export async function DELETE(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      message: 'Milestone deleted successfully'
+      message: 'Template deleted successfully'
     })
 
   } catch (error) {
@@ -231,71 +228,123 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Fallback data when database is not available
-function getDefaultMilestones(): Milestone[] {
+function getDefaultTemplates(): CodeTemplate[] {
   return [
     {
       id: '1',
-      title: 'Started Healthcare Career',
-      description: 'Qualified as Pharmacist and Optometrist, beginning professional healthcare journey',
-      target_date: 'July 2010',
-      completed: true,
-      completion_date: 'July 2010',
-      progress: 100,
-      category: 'education',
-      details: ['Completed Pharmacy degree', 'Qualified as Optometrist', 'Started working in healthcare sector'],
-      status: 'completed',
+      title: 'Express.js Server',
+      description: 'Basic Express.js server setup with middleware, routes, and error handling',
+      category: 'server',
+      language: 'javascript',
+      filename: 'server.js',
+      content: `const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+app.listen(PORT, () => {
+  console.log(\`Server running on port \${PORT}\`);
+});`,
+      tags: ['express', 'node', 'server', 'api'],
+      featured: true,
       order_index: 1
     },
     {
       id: '2',
-      title: 'Discovered Trading',
-      description: 'Started retail forex trading, sparking interest in financial markets and data analysis',
-      target_date: 'March 2018',
-      completed: true,
-      completion_date: 'March 2018',
-      progress: 100,
-      category: 'milestone',
-      details: ['Began learning technical analysis', 'Started live trading account', 'Discovered passion for data-driven decisions'],
-      status: 'completed',
+      title: 'Next.js API Route',
+      description: 'TypeScript API route template with error handling and type safety',
+      category: 'component',
+      language: 'typescript',
+      filename: 'route.ts',
+      content: `import { NextRequest, NextResponse } from 'next/server'
+
+interface ApiResponse {
+  success: boolean
+  data?: any
+  error?: string
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    // Your logic here
+    const data = { message: 'Hello World', id }
+    
+    return NextResponse.json({
+      success: true,
+      data
+    } as ApiResponse)
+    
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    } as ApiResponse, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Validate input
+    if (!body.name) {
+      return NextResponse.json({
+        success: false,
+        error: 'Name is required'
+      } as ApiResponse, { status: 400 })
+    }
+    
+    // Your logic here
+    const result = { id: Date.now(), ...body }
+    
+    return NextResponse.json({
+      success: true,
+      data: result
+    } as ApiResponse)
+    
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    } as ApiResponse, { status: 500 })
+  }
+}`,
+      tags: ['nextjs', 'api', 'typescript', 'route'],
+      featured: true,
       order_index: 2
-    },
-    {
-      id: '3',
-      title: 'First Coding Experience',
-      description: 'Started learning Python for trading automation and data analysis',
-      target_date: 'January 2023',
-      completed: true,
-      completion_date: 'January 2023',
-      progress: 100,
-      category: 'learning',
-      details: ['Completed Python basics course', 'Built first trading scripts', 'Discovered love for programming'],
-      status: 'completed',
-      order_index: 3
-    },
-    {
-      id: '4',
-      title: 'Built ForexAcuity',
-      description: 'Developed comprehensive forex analytics platform with real-time data and pattern recognition',
-      target_date: 'December 2024',
-      completed: true,
-      completion_date: 'December 2024',
-      progress: 100,
-      category: 'project',
-      details: ['Learned Next.js and React', 'Implemented WebSocket architecture', 'Launched with paying customers'],
-      status: 'completed',
-      order_index: 4
-    },
-    {
-      id: '5',
-      title: 'Career Transition Goal',
-      description: 'Secure first software engineering role, ideally in fintech or healthcare tech',
-      target_date: 'June 2025',
-      completed: false,
-      progress: 75,
-      category: 'goal',
-      details: ['Complete portfolio with admin system', 'Apply to target companies', 'Prepare for technical interviews'],
-      status: 'in-progress',
-      order_index: 5
     }
   ]
 }

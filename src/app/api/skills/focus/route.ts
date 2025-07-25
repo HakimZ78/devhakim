@@ -11,17 +11,12 @@ const supabaseServiceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabaseService = createClient(supabaseServiceUrl, supabaseServiceKey)
 
-export interface Milestone {
+export interface SkillFocus {
   id?: string
-  title: string
-  description: string
-  target_date: string
-  completed?: boolean
-  completion_date?: string
-  progress?: number
-  category: string
-  details?: string[]
-  status: 'completed' | 'in-progress' | 'upcoming'
+  skill: string
+  progress: number
+  learning_strategy?: string
+  learning_method?: string
   order_index: number
   created_at?: string
   updated_at?: string
@@ -30,7 +25,7 @@ export interface Milestone {
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from('milestones')
+      .from('skill_focus')
       .select('*')
       .order('order_index', { ascending: true })
 
@@ -39,7 +34,7 @@ export async function GET() {
       // Return fallback data if database isn't available
       return NextResponse.json({
         success: true,
-        data: getDefaultMilestones()
+        data: getDefaultSkillFocus()
       })
     }
 
@@ -52,7 +47,7 @@ export async function GET() {
     console.error('API error:', error)
     return NextResponse.json({
       success: true,
-      data: getDefaultMilestones()
+      data: getDefaultSkillFocus()
     })
   }
 }
@@ -60,49 +55,34 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== POST /api/journey/milestones ===')
-    console.log('Creating new milestone:', JSON.stringify(body, null, 2))
+    console.log('=== POST /api/skills/focus ===')
+    console.log('Creating new skill focus:', JSON.stringify(body, null, 2))
     
-    const {
-      title,
-      description,
-      target_date,
-      completed,
-      completion_date,
-      progress,
-      category,
-      details,
-      status
-    } = body
+    const { skill, progress, learning_strategy, learning_method } = body
 
     // Get next order index
-    const { data: existingMilestones } = await supabase
-      .from('milestones')
+    const { data: existingFocus } = await supabase
+      .from('skill_focus')
       .select('order_index')
       .order('order_index', { ascending: false })
       .limit(1)
 
-    const nextOrderIndex = (existingMilestones?.[0]?.order_index || 0) + 1
+    const nextOrderIndex = (existingFocus?.[0]?.order_index || 0) + 1
 
-    const milestoneData = {
-      title,
-      description,
-      target_date,
-      completed: completed || false,
-      completion_date,
+    const focusData = {
+      skill,
       progress: progress || 0,
-      category,
-      details: details || [],
-      status: status || 'upcoming',
+      learning_strategy: learning_strategy || '',
+      learning_method: learning_method || '',
       order_index: nextOrderIndex
     }
 
-    console.log('Prepared milestoneData for DB insert:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared focusData for DB insert:', JSON.stringify(focusData, null, 2))
 
     // Use service role client for insert (bypasses RLS)
     const { data, error } = await supabaseService
-      .from('milestones')
-      .insert([milestoneData])
+      .from('skill_focus')
+      .insert([focusData])
       .select()
       .single()
 
@@ -128,45 +108,45 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('=== PUT /api/journey/milestones ===')
+    console.log('=== PUT /api/skills/focus ===')
     console.log('Received data from frontend:', JSON.stringify(body, null, 2))
     
     const { id, ...updateData } = body
     
     if (!id) {
-      throw new Error('Milestone ID is required for updates')
+      throw new Error('Skill focus ID is required for updates')
     }
 
-    const milestoneData = {
+    const focusData = {
       ...updateData,
       updated_at: new Date().toISOString()
     }
     
-    console.log('Prepared milestoneData for DB update:', JSON.stringify(milestoneData, null, 2))
+    console.log('Prepared focusData for DB update:', JSON.stringify(focusData, null, 2))
 
-    // Check if milestone exists
+    // Check if focus exists
     const { data: existing, error: checkError } = await supabase
-      .from('milestones')
-      .select('id, title')
+      .from('skill_focus')
+      .select('id, skill')
       .eq('id', id)
       .limit(1)
 
     console.log('Existing record check:', { existing, checkError })
 
     if (!existing || existing.length === 0) {
-      throw new Error('Milestone not found')
+      throw new Error('Skill focus not found')
     }
 
-    console.log('=== UPDATING EXISTING MILESTONE ===')
-    console.log('Current DB title:', existing[0].title)
-    console.log('New title to save:', milestoneData.title)
-    console.log('Milestone ID:', existing[0].id)
+    console.log('=== UPDATING EXISTING SKILL FOCUS ===')
+    console.log('Current DB skill:', existing[0].skill)
+    console.log('New skill to save:', focusData.skill)
+    console.log('Focus ID:', existing[0].id)
 
     // Use service role client for update (bypasses RLS)
     console.log('Using service role client for update...')
     const { data: updateResult, error: updateError } = await supabaseService
-      .from('milestones')
-      .update(milestoneData)
+      .from('skill_focus')
+      .update(focusData)
       .eq('id', id)
       .select('*')
 
@@ -178,7 +158,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const result = updateResult && updateResult.length > 0 ? updateResult[0] : null
-    console.log('Update successful. New title in DB:', result?.title)
+    console.log('Update successful. New skill in DB:', result?.skill)
     console.log('Final result to return:', JSON.stringify(result, null, 2))
     
     return NextResponse.json({
@@ -201,15 +181,15 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     
     if (!id) {
-      throw new Error('Milestone ID is required for deletion')
+      throw new Error('Skill focus ID is required for deletion')
     }
 
-    console.log('=== DELETE /api/journey/milestones ===')
-    console.log('Deleting milestone with ID:', id)
+    console.log('=== DELETE /api/skills/focus ===')
+    console.log('Deleting skill focus with ID:', id)
 
     // Use service role client for delete (bypasses RLS)
     const { error } = await supabaseService
-      .from('milestones')
+      .from('skill_focus')
       .delete()
       .eq('id', id)
 
@@ -218,7 +198,7 @@ export async function DELETE(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      message: 'Milestone deleted successfully'
+      message: 'Skill focus deleted successfully'
     })
 
   } catch (error) {
@@ -231,70 +211,46 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Fallback data when database is not available
-function getDefaultMilestones(): Milestone[] {
+function getDefaultSkillFocus(): SkillFocus[] {
   return [
     {
       id: '1',
-      title: 'Started Healthcare Career',
-      description: 'Qualified as Pharmacist and Optometrist, beginning professional healthcare journey',
-      target_date: 'July 2010',
-      completed: true,
-      completion_date: 'July 2010',
-      progress: 100,
-      category: 'education',
-      details: ['Completed Pharmacy degree', 'Qualified as Optometrist', 'Started working in healthcare sector'],
-      status: 'completed',
+      skill: 'Trading Analytics',
+      progress: 85,
+      learning_strategy: 'Building ForexAcuity platform + MT5 API integration',
+      learning_method: 'Hands-on project development',
       order_index: 1
     },
     {
       id: '2',
-      title: 'Discovered Trading',
-      description: 'Started retail forex trading, sparking interest in financial markets and data analysis',
-      target_date: 'March 2018',
-      completed: true,
-      completion_date: 'March 2018',
-      progress: 100,
-      category: 'milestone',
-      details: ['Began learning technical analysis', 'Started live trading account', 'Discovered passion for data-driven decisions'],
-      status: 'completed',
+      skill: 'Full-Stack Development',
+      progress: 80,
+      learning_strategy: 'Next.js documentation + portfolio project implementation',
+      learning_method: 'Documentation + practical application',
       order_index: 2
     },
     {
       id: '3',
-      title: 'First Coding Experience',
-      description: 'Started learning Python for trading automation and data analysis',
-      target_date: 'January 2023',
-      completed: true,
-      completion_date: 'January 2023',
-      progress: 100,
-      category: 'learning',
-      details: ['Completed Python basics course', 'Built first trading scripts', 'Discovered love for programming'],
-      status: 'completed',
+      skill: 'Real-time Data Systems',
+      progress: 75,
+      learning_strategy: 'WebSocket implementation + Redis caching study',
+      learning_method: 'Technical documentation + coding practice',
       order_index: 3
     },
     {
       id: '4',
-      title: 'Built ForexAcuity',
-      description: 'Developed comprehensive forex analytics platform with real-time data and pattern recognition',
-      target_date: 'December 2024',
-      completed: true,
-      completion_date: 'December 2024',
-      progress: 100,
-      category: 'project',
-      details: ['Learned Next.js and React', 'Implemented WebSocket architecture', 'Launched with paying customers'],
-      status: 'completed',
+      skill: 'Database Design',
+      progress: 70,
+      learning_strategy: 'PostgreSQL docs + Supabase RLS implementation',
+      learning_method: 'Official documentation + trial and error',
       order_index: 4
     },
     {
       id: '5',
-      title: 'Career Transition Goal',
-      description: 'Secure first software engineering role, ideally in fintech or healthcare tech',
-      target_date: 'June 2025',
-      completed: false,
-      progress: 75,
-      category: 'goal',
-      details: ['Complete portfolio with admin system', 'Apply to target companies', 'Prepare for technical interviews'],
-      status: 'in-progress',
+      skill: 'DevOps/Docker',
+      progress: 60,
+      learning_strategy: 'Docker official tutorials + IONOS VPS deployment',
+      learning_method: 'Online tutorials + production deployment',
       order_index: 5
     }
   ]

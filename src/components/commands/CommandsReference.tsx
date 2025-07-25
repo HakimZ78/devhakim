@@ -31,7 +31,24 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
-import { allCommands, commandsByComplexity, learningProgression, type Command, type CommandCategory } from '@/data/fx-platform-commands';
+import AdminOnly from '@/components/admin/AdminOnly';
+interface Command {
+  id: string;
+  title: string;
+  description: string;
+  command: string;
+  category: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  example?: string;
+  output?: string;
+  dateLearned?: string;
+  relatedTo?: string;
+  sourceFile?: string;
+  projectSource?: string;
+  tags?: string[];
+}
+
+type CommandCategory = string;
 
 const columnHelper = createColumnHelper<Command>();
 
@@ -61,7 +78,8 @@ const difficultyColors = {
 };
 
 export default function CommandsReference() {
-  const [commands, setCommands] = useState<Command[]>(allCommands);
+  const [commands, setCommands] = useState<Command[]>([]);
+  const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
@@ -70,27 +88,40 @@ export default function CommandsReference() {
   const [editingCommand, setEditingCommand] = useState<Command | null>(null);
   const [newCommand, setNewCommand] = useState<Partial<Command>>({});
 
-  // Load commands from localStorage on mount
+  // Load commands from database on mount
   useEffect(() => {
-    try {
-      const savedCommands = localStorage.getItem('portfolioCommands');
-      if (savedCommands) {
-        const parsed = JSON.parse(savedCommands);
-        setCommands(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading commands from localStorage:', error);
-    }
+    loadCommands();
   }, []);
 
-  // Save commands to localStorage whenever commands change
-  useEffect(() => {
+  const loadCommands = async () => {
     try {
-      localStorage.setItem('portfolioCommands', JSON.stringify(commands));
+      setLoading(true);
+      const response = await fetch('/api/commands');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Transform the database format to match the component's expected format
+        const transformedCommands = result.data.map((cmd: any) => ({
+          id: cmd.id,
+          title: cmd.title,
+          description: cmd.description,
+          command: cmd.command,
+          category: cmd.category,
+          projectSource: cmd.project_source,
+          tags: cmd.tags || [],
+          difficulty: 'intermediate', // Default since not in database
+          complexity: 3 // Default since not in database
+        }));
+        setCommands(transformedCommands);
+      } else {
+        console.error('Failed to load commands:', result);
+      }
     } catch (error) {
-      console.error('Error saving commands to localStorage:', error);
+      console.error('Error loading commands:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [commands]);
+  };
 
   // Filter commands based on selected filters
   const filteredCommands = useMemo(() => {
@@ -105,11 +136,7 @@ export default function CommandsReference() {
     }
 
     if (progressionFilter !== 'all') {
-      const progression = learningProgression[progressionFilter as keyof typeof learningProgression];
-      if (progression) {
-        const progressionCommandIds = progression.commands.map(cmd => cmd.id);
-        filtered = filtered.filter(cmd => progressionCommandIds.includes(cmd.id));
-      }
+      filtered = filtered.filter(cmd => cmd.projectSource === progressionFilter);
     }
 
     return filtered;
@@ -178,7 +205,7 @@ export default function CommandsReference() {
     columnHelper.accessor('difficulty', {
       header: 'Level',
       cell: ({ getValue }) => {
-        const difficulty = getValue();
+        const difficulty = getValue() || 'beginner';
         const colors = difficultyColors[difficulty];
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${colors.bg} ${colors.text} ${colors.border}`}>
@@ -191,7 +218,7 @@ export default function CommandsReference() {
     columnHelper.accessor('tags', {
       header: 'Tags',
       cell: ({ getValue }) => {
-        const tags = getValue();
+        const tags = getValue() || [];
         return (
           <div className="flex flex-wrap gap-1">
             {tags.slice(0, 3).map((tag, index) => (
@@ -227,7 +254,11 @@ export default function CommandsReference() {
       header: 'Date',
       cell: ({ getValue }) => {
         const date = getValue();
+        if (!date) return <span className="text-xs text-gray-500">-</span>;
+        
         const dateObj = typeof date === 'string' ? new Date(date) : date;
+        if (isNaN(dateObj.getTime())) return <span className="text-xs text-gray-500">-</span>;
+        
         return (
           <span className="text-xs text-gray-500">
             {dateObj.toLocaleDateString('en-US', { 
@@ -243,22 +274,24 @@ export default function CommandsReference() {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
-        <div className="flex space-x-1">
-          <button
-            onClick={() => handleEditCommand(row.original)}
-            className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-200"
-            title="Edit command"
-          >
-            <Edit3 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleDeleteCommand(row.original.id)}
-            className="p-1 text-gray-400 hover:text-red-400 transition-colors duration-200"
-            title="Delete command"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+        <AdminOnly>
+          <div className="flex space-x-1">
+            <button
+              onClick={() => handleEditCommand(row.original)}
+              className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-200"
+              title="Edit command"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleDeleteCommand(row.original.id)}
+              className="p-1 text-gray-400 hover:text-red-400 transition-colors duration-200"
+              title="Delete command"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </AdminOnly>
       ),
       size: 80,
     }),
@@ -294,11 +327,12 @@ export default function CommandsReference() {
 
     const command: Command = {
       id: `custom-${Date.now()}`,
+      title: newCommand.title || newCommand.command,
       category: (newCommand.category as CommandCategory) || 'system',
       command: newCommand.command,
       description: newCommand.description,
       example: newCommand.example || newCommand.command,
-      dateLearned: newCommand.dateLearned || new Date(),
+      dateLearned: newCommand.dateLearned || new Date().toISOString(),
       difficulty: newCommand.difficulty || 'beginner',
       tags: newCommand.tags || [],
       relatedTo: newCommand.relatedTo,
@@ -353,11 +387,11 @@ export default function CommandsReference() {
           cmd.category,
           `"${cmd.command}"`,
           `"${cmd.description}"`,
-          `"${cmd.example}"`,
-          cmd.difficulty,
-          `"${cmd.tags.join('; ')}"`,
-          cmd.projectSource,
-          cmd.dateLearned.toISOString().split('T')[0]
+          `"${cmd.example || ''}"`,
+          cmd.difficulty || 'beginner',
+          `"${(cmd.tags || []).join('; ')}"`,
+          cmd.projectSource || '',
+          cmd.dateLearned ? (new Date(cmd.dateLearned).toISOString().split('T')[0]) : ''
         ].join(','))
       ].join('\n');
 
@@ -373,11 +407,22 @@ export default function CommandsReference() {
 
   const stats = {
     total: commands.length,
-    beginner: commandsByComplexity.beginner.length,
-    intermediate: commandsByComplexity.intermediate.length,
-    advanced: commandsByComplexity.advanced.length,
-    categories: Object.keys(categoryIcons).length,
+    beginner: commands.filter(cmd => cmd.difficulty === 'beginner').length,
+    intermediate: commands.filter(cmd => cmd.difficulty === 'intermediate').length,
+    advanced: commands.filter(cmd => cmd.difficulty === 'advanced').length,
+    categories: [...new Set(commands.map(cmd => cmd.category))].length,
   };
+
+  if (loading) {
+    return (
+      <section className="py-20 px-6 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading commands...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 px-6">
@@ -434,13 +479,15 @@ export default function CommandsReference() {
 
             {/* Actions */}
             <div className="flex space-x-3">
-              <button
-                onClick={() => setIsAddingCommand(true)}
-                className="flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Command
-              </button>
+              <AdminOnly>
+                <button
+                  onClick={() => setIsAddingCommand(true)}
+                  className="flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Command
+                </button>
+              </AdminOnly>
               <div className="relative group">
                 <button className="flex items-center px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors duration-200">
                   <Download className="w-4 h-4 mr-2" />
@@ -495,10 +542,10 @@ export default function CommandsReference() {
               onChange={(e) => setProgressionFilter(e.target.value)}
               className="px-4 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All Learning Paths</option>
-              {Object.entries(learningProgression).map(([path, data]) => (
-                <option key={path} value={path}>
-                  {data.order}. {path}
+              <option value="all">All Project Sources</option>
+              {[...new Set(commands.map(cmd => cmd.projectSource))].filter(Boolean).map((source) => (
+                <option key={source} value={source}>
+                  {source}
                 </option>
               ))}
             </select>
@@ -603,36 +650,37 @@ export default function CommandsReference() {
         <div className="mt-16">
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Learning Progression</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(learningProgression).map(([path, data]) => (
-              <div
-                key={path}
-                className="bg-slate-700/30 backdrop-blur-sm rounded-xl p-6 border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300"
-              >
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    {data.order}
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">{path}</h3>
-                </div>
-                <p className="text-gray-400 text-sm mb-4">{data.description}</p>
-                <div className="space-y-2">
-                  <div className="text-sm text-gray-300">
-                    <span className="font-medium">{data.commands.length} commands</span>
-                  </div>
-                  {data.prerequisites.length > 0 && (
-                    <div className="text-xs text-gray-500">
-                      Prerequisites: {data.prerequisites.join(', ')}
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setProgressionFilter(path)}
-                  className="mt-4 w-full px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors duration-200 border border-blue-500/30"
+            {[...new Set(commands.map(cmd => cmd.projectSource))].filter(Boolean).map((source, index) => {
+              const sourceCommands = commands.filter(cmd => cmd.projectSource === source);
+              return (
+                <div
+                  key={source}
+                  className="bg-slate-700/30 backdrop-blur-sm rounded-xl p-6 border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300"
                 >
-                  View Commands
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">{source}</h3>
+                  </div>
+                  <p className="text-gray-400 text-sm mb-4">Commands and scripts from {source}</p>
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-300">
+                      <span className="font-medium">{sourceCommands.length} commands</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Categories: {[...new Set(sourceCommands.map(cmd => cmd.category))].join(', ')}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setProgressionFilter(source || '')}
+                    className="mt-4 w-full px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors duration-200 border border-blue-500/30"
+                  >
+                    View Commands
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
 
