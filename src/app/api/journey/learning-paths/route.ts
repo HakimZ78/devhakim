@@ -108,3 +108,29 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json({ error: 'ID parameter is required' }, { status: 400 })
+    }
+    
+    const { error } = await supabase
+      .from('learning_paths')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('Error deleting learning path:', error)
+      return NextResponse.json({ error: 'Failed to delete learning path' }, { status: 500 })
+    }
+    
+    return NextResponse.json({ success: true, message: 'Learning path deleted successfully' })
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
