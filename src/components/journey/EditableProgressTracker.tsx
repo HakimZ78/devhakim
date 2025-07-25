@@ -13,7 +13,8 @@ import {
   X,
   Plus
 } from 'lucide-react'
-import { useAdmin } from '@/contexts/AdminContext'
+import { useGlobalAdmin } from '@/contexts/GlobalAdminContext'
+import AdminOnly from '@/components/admin/AdminOnly'
 
 interface ProgressItem {
   skill: string
@@ -39,7 +40,7 @@ interface EditingItem {
 }
 
 export default function EditableProgressTracker() {
-  const { isEditMode } = useAdmin()
+  const { isAuthenticated } = useGlobalAdmin()
   const [data, setData] = useState<ProgressCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -269,7 +270,8 @@ export default function EditableProgressTracker() {
       </div>
 
       {/* Add New Button */}
-      {isEditMode && !isAddingNew && selectedCategory && (
+      <AdminOnly>
+        {!isAddingNew && selectedCategory && (
         <div className="flex justify-end">
           <button
             onClick={handleAddNew}
@@ -279,10 +281,12 @@ export default function EditableProgressTracker() {
             <span>Add New Skill</span>
           </button>
         </div>
-      )}
+        )}
+      </AdminOnly>
 
       {/* Add New Form */}
-      {isAddingNew && (
+      <AdminOnly>
+        {isAddingNew && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -376,7 +380,8 @@ export default function EditableProgressTracker() {
             </div>
           </div>
         </motion.div>
-      )}
+        )}
+      </AdminOnly>
 
       {/* Progress Items */}
       <div className="space-y-4">
@@ -438,14 +443,14 @@ export default function EditableProgressTracker() {
                       </button>
                     </div>
                   ) : (
-                    isEditMode && (
+                    <AdminOnly>
                       <button
                         onClick={() => handleEditItem(selectedCategory, index, item)}
                         className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
                       >
                         <Edit3 className="w-3 h-3" />
                       </button>
-                    )
+                    </AdminOnly>
                   )}
                 </div>
               </div>
@@ -566,14 +571,14 @@ export default function EditableProgressTracker() {
           <Target className="w-16 h-16 text-gray-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-400 mb-2">No Skills Yet</h3>
           <p className="text-gray-500 mb-4">Start tracking your progress by adding your first skill.</p>
-          {isEditMode && (
+          <AdminOnly>
             <button
               onClick={handleAddNew}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               Add First Skill
             </button>
-          )}
+          </AdminOnly>
         </div>
       )}
     </div>

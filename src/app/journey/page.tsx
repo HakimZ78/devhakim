@@ -5,17 +5,12 @@ import { Book, Code, Trophy, Target, Calendar, CheckCircle } from 'lucide-react'
 import EditableLearningPathVisualization from '@/components/journey/EditableLearningPathVisualization';
 import EditableProgressTracker from '@/components/journey/EditableProgressTracker';
 import EditableCertificationsShowcase from '@/components/journey/EditableCertificationsShowcase';
-import AdminToolbar from '@/components/journey/AdminToolbar';
-import { AdminProvider } from '@/contexts/AdminContext';
-import AdminOnly from '@/components/admin/AdminOnly';
+import AdminModeIndicator from '@/components/admin/AdminModeIndicator';
 
 export default function JourneyPage() {
   return (
-    <AdminProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <AdminOnly>
-          <AdminToolbar />
-        </AdminOnly>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <AdminModeIndicator />
         
         <div className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6">
@@ -78,7 +73,6 @@ export default function JourneyPage() {
             </motion.section>
           </div>
         </div>
-      </div>
-    </AdminProvider>
+    </div>
   );
 }

@@ -17,7 +17,8 @@ import {
   FileText,
   Trash2
 } from 'lucide-react'
-import { useAdmin } from '@/contexts/AdminContext'
+import { useGlobalAdmin } from '@/contexts/GlobalAdminContext'
+import AdminOnly from '@/components/admin/AdminOnly'
 import { useState, useEffect } from 'react'
 
 interface Certification {
@@ -46,7 +47,7 @@ interface EditingCertification {
 }
 
 export default function EditableCertificationsShowcase() {
-  const { isEditMode } = useAdmin()
+  const { isAuthenticated } = useGlobalAdmin()
   const [data, setData] = useState<Certification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -263,7 +264,8 @@ export default function EditableCertificationsShowcase() {
 
       <div className="space-y-6">
       {/* Add New Button */}
-      {isEditMode && !isAddingNew && (
+      <AdminOnly>
+        {!isAddingNew && (
         <div className="flex justify-end">
           <button
             onClick={handleAddNew}
@@ -273,10 +275,12 @@ export default function EditableCertificationsShowcase() {
             <span>Add New Certification</span>
           </button>
         </div>
-      )}
+        )}
+      </AdminOnly>
 
       {/* Add New Form */}
-      {isAddingNew && (
+      <AdminOnly>
+        {isAddingNew && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -389,7 +393,8 @@ export default function EditableCertificationsShowcase() {
             </div>
           </div>
         </motion.div>
-      )}
+        )}
+      </AdminOnly>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.map((cert, index) => {
@@ -427,24 +432,22 @@ export default function EditableCertificationsShowcase() {
                   </div>
                 ) : (
                   <>
-                    {isEditMode && (
-                      <>
-                        <button
-                          onClick={() => handleEditCertification(cert)}
-                          className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
-                          title="Edit Certification"
-                        >
-                          <Edit3 className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCertification(cert.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
-                          title="Delete Certification"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </>
-                    )}
+                    <AdminOnly>
+                      <button
+                        onClick={() => handleEditCertification(cert)}
+                        className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
+                        title="Edit Certification"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCertification(cert.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                        title="Delete Certification"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </AdminOnly>
                     {cert.certificate_pdf && (
                       <button
                         onClick={() => handleViewCertificate(cert.certificate_pdf!)}

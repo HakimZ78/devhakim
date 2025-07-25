@@ -18,7 +18,8 @@ import {
   Plus
 } from 'lucide-react'
 import { useJourneyData } from '@/hooks/useJourneyData'
-import { useAdmin } from '@/contexts/AdminContext'
+import { useGlobalAdmin } from '@/contexts/GlobalAdminContext'
+import AdminOnly from '@/components/admin/AdminOnly'
 import type { LearningPath } from '@/lib/supabase'
 
 const iconMap = {
@@ -37,7 +38,7 @@ interface EditingPath {
 
 export default function EditableLearningPathVisualization() {
   const { data, loading, error, updateLearningPath, createLearningPath } = useJourneyData()
-  const { isEditMode } = useAdmin()
+  const { isAuthenticated } = useGlobalAdmin()
   const [editingPath, setEditingPath] = useState<EditingPath | null>(null)
   const [expandedPath, setExpandedPath] = useState<string | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
@@ -140,20 +141,23 @@ export default function EditableLearningPathVisualization() {
   return (
     <div className="space-y-6">
       {/* Add New Button */}
-      {isEditMode && !isAddingNew && (
-        <div className="flex justify-end">
-          <button
-            onClick={handleAddNew}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add New Learning Path</span>
-          </button>
-        </div>
-      )}
+      <AdminOnly>
+        {!isAddingNew && (
+          <div className="flex justify-end">
+            <button
+              onClick={handleAddNew}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Learning Path</span>
+            </button>
+          </div>
+        )}
+      </AdminOnly>
 
       {/* Add New Form */}
-      {isAddingNew && (
+      <AdminOnly>
+        {isAddingNew && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -244,7 +248,8 @@ export default function EditableLearningPathVisualization() {
             </div>
           </div>
         </motion.div>
-      )}
+        )}
+      </AdminOnly>
 
       {data.learningPaths.map((path, index) => {
         const isEditing = editingPath?.id === path.id
@@ -307,14 +312,14 @@ export default function EditableLearningPathVisualization() {
                     </div>
                   ) : (
                     <>
-                      {isEditMode && (
+                      <AdminOnly>
                         <button
                           onClick={() => handleEditPath(path)}
                           className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
-                      )}
+                      </AdminOnly>
                       <button
                         onClick={() => setExpandedPath(isExpanded ? null : path.id)}
                         className="p-2 text-gray-400 hover:text-white transition-colors"

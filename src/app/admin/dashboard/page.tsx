@@ -12,7 +12,8 @@ import {
   Command, 
   Settings,
   LogOut,
-  ExternalLink
+  ExternalLink,
+  MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -24,6 +25,7 @@ interface DashboardStats {
   timeline: number;
   templates: number;
   commands: number;
+  journey: number;
 }
 
 export default function AdminDashboard() {
@@ -34,7 +36,8 @@ export default function AdminDashboard() {
     skills: 0,
     timeline: 0,
     templates: 0,
-    commands: 0
+    commands: 0,
+    journey: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +47,13 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      const [projectsRes, skillsRes, timelineRes, templatesRes, commandsRes] = await Promise.all([
+      const [projectsRes, skillsRes, timelineRes, templatesRes, commandsRes, journeyRes] = await Promise.all([
         fetch('/api/projects'),
         fetch('/api/skills/categories'),
-        fetch('/api/journey'),
+        fetch('/api/timeline-events'),
         fetch('/api/templates'),
-        fetch('/api/commands')
+        fetch('/api/commands'),
+        fetch('/api/journey')
       ]);
 
       // Handle each response individually with error checking
@@ -58,6 +62,7 @@ export default function AdminDashboard() {
       let timeline = { success: false, data: [] };
       let templates = { success: false, data: [] };
       let commands = { success: false, data: [] };
+      let journey = { success: false, data: { learningPaths: [], milestones: [], certifications: [] } };
 
       if (projectsRes.ok) {
         try {
@@ -99,12 +104,21 @@ export default function AdminDashboard() {
         }
       }
 
+      if (journeyRes.ok) {
+        try {
+          journey = await journeyRes.json();
+        } catch (e) {
+          console.error('Failed to parse journey response:', e);
+        }
+      }
+
       setStats({
         projects: projects.success ? projects.data.length : 0,
         skills: skills.success ? skills.data.length : 0,
         timeline: timeline.success ? timeline.data.length : 0,
         templates: templates.success ? templates.data.length : 0,
-        commands: commands.success ? commands.data.length : 0
+        commands: commands.success ? commands.data.length : 0,
+        journey: journey.success ? (journey.data.learningPaths?.length || 0) + (journey.data.milestones?.length || 0) + (journey.data.certifications?.length || 0) : 0
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
@@ -145,6 +159,14 @@ export default function AdminDashboard() {
       href: '/admin/content/timeline',
       color: 'from-orange-500 to-orange-600',
       stats: loading ? 'Loading...' : `${stats.timeline} events`
+    },
+    {
+      title: 'Journey',
+      description: 'Manage learning paths, milestones & certifications',
+      icon: <MapPin className="w-6 h-6" />,
+      href: '/admin/content/journey',
+      color: 'from-teal-500 to-teal-600',
+      stats: loading ? 'Loading...' : `${stats.journey} items`
     },
     {
       title: 'Templates',
