@@ -242,7 +242,7 @@ export const journeyData = {
     {
       id: 'msc-completion',
       title: 'MSc Computer Science',
-      description: 'Complete Master\'s degree in Computer Science with focus on AI/ML',
+      description: 'Complete Masters degree in Computer Science with focus on AI/ML',
       target_date: '2025-09-30',
       completed: false,
       progress: 75,
@@ -286,7 +286,7 @@ export const journeyData = {
       id: 'msc-cs',
       title: 'MSc Computer Science',
       provider: 'University of London',
-      description: 'Master\'s degree focusing on Machine Learning, AI, and Software Engineering',
+      description: 'Masters degree focusing on Machine Learning, AI, and Software Engineering',
       status: 'in_progress' as const,
       expected_date: '2025-09-30',
       skills: ['Machine Learning', 'AI', 'Algorithms', 'Software Engineering', 'Research'],
