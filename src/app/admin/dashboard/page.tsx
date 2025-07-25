@@ -191,6 +191,30 @@ export default function AdminDashboard() {
     router.push('/admin');
   };
 
+  const handleInitializeDatabase = async () => {
+    if (!confirm('This will initialize database tables and add sample data. Continue?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/init-db', {
+        method: 'POST'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('Database initialization complete! Check the results:\n\n' + result.results.join('\n'));
+        window.location.reload();
+      } else {
+        alert(`Database initialization failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Database initialization error:', error);
+      alert('Database initialization failed. Please check the console for details.');
+    }
+  };
+
   const handleMigrateJourney = async () => {
     if (!confirm('This will migrate your existing journey data from static files to the database. Your current data will be preserved. Continue?')) {
       return;
@@ -207,7 +231,7 @@ export default function AdminDashboard() {
         alert(`Migration successful! Migrated ${result.migrated.learningPaths} learning paths, ${result.migrated.milestones} milestones, and ${result.migrated.certifications} certifications.`);
         window.location.reload();
       } else {
-        alert(`Migration failed: ${result.error}`);
+        alert(`Migration failed: ${result.error}\n\nDetails: ${result.details || 'No additional details'}`);
       }
     } catch (error) {
       console.error('Migration error:', error);
@@ -306,7 +330,7 @@ export default function AdminDashboard() {
           className="mt-12 bg-slate-800/30 rounded-xl p-6 border border-slate-700"
         >
           <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/admin/settings"
               className="flex items-center px-4 py-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors group"
@@ -320,6 +344,16 @@ export default function AdminDashboard() {
             >
               <LayoutDashboard className="w-5 h-5 text-gray-400 group-hover:text-white mr-3" />
               <span className="text-gray-300 group-hover:text-white">Refresh Data</span>
+            </button>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4 mt-4">
+            <button
+              onClick={handleInitializeDatabase}
+              className="flex items-center px-4 py-3 bg-blue-600/50 rounded-lg hover:bg-blue-600 transition-colors group"
+            >
+              <LayoutDashboard className="w-5 h-5 text-blue-400 group-hover:text-white mr-3" />
+              <span className="text-blue-300 group-hover:text-white">Initialize Database Tables</span>
             </button>
             <button
               onClick={handleMigrateJourney}

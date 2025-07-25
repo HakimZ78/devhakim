@@ -11,10 +11,29 @@ export async function POST() {
   try {
     console.log('Starting journey data migration...')
 
+    // First, check if tables exist by testing queries
+    console.log('Checking if tables exist...')
+    
+    const tableChecks = await Promise.all([
+      supabaseService.from('learning_paths').select('id', { count: 'exact', head: true }),
+      supabaseService.from('milestones').select('id', { count: 'exact', head: true }),
+      supabaseService.from('certifications').select('id', { count: 'exact', head: true })
+    ])
+    
+    console.log('Table check results:', tableChecks.map(result => ({ 
+      error: result.error?.message, 
+      count: result.count 
+    })))
+
     // Clear existing data first
-    await supabaseService.from('learning_paths').delete().neq('id', '')
-    await supabaseService.from('milestones').delete().neq('id', '')
-    await supabaseService.from('certifications').delete().neq('id', '')
+    console.log('Clearing existing data...')
+    const clearResults = await Promise.all([
+      supabaseService.from('learning_paths').delete().neq('id', ''),
+      supabaseService.from('milestones').delete().neq('id', ''),
+      supabaseService.from('certifications').delete().neq('id', '')
+    ])
+    
+    console.log('Clear results:', clearResults.map(result => ({ error: result.error?.message })))
 
     // Migrate Learning Paths
     const learningPathsData = journeyData.learningPaths.map(path => ({
@@ -27,14 +46,16 @@ export async function POST() {
       order_index: path.order_index
     }))
 
+    console.log('Inserting learning paths:', learningPathsData)
     const { error: pathsError } = await supabaseService
       .from('learning_paths')
       .insert(learningPathsData)
     
     if (pathsError) {
       console.error('Learning paths migration error:', pathsError)
-      throw pathsError
+      throw new Error(`Learning paths migration failed: ${pathsError.message}`)
     }
+    console.log('✅ Learning paths migrated successfully')
 
     // Migrate Milestones
     const milestonesData = journeyData.milestones.map(milestone => ({
@@ -49,14 +70,16 @@ export async function POST() {
       order_index: milestone.order_index
     }))
 
+    console.log('Inserting milestones:', milestonesData)
     const { error: milestonesError } = await supabaseService
       .from('milestones')
       .insert(milestonesData)
       
     if (milestonesError) {
       console.error('Milestones migration error:', milestonesError)
-      throw milestonesError
+      throw new Error(`Milestones migration failed: ${milestonesError.message}`)
     }
+    console.log('✅ Milestones migrated successfully')
 
     // Migrate Certifications
     const certificationsData = journeyData.certifications.map(cert => ({
@@ -71,14 +94,16 @@ export async function POST() {
       order_index: cert.order_index
     }))
 
+    console.log('Inserting certifications:', certificationsData)
     const { error: certsError } = await supabaseService
       .from('certifications')
       .insert(certificationsData)
       
     if (certsError) {
       console.error('Certifications migration error:', certsError)
-      throw certsError
+      throw new Error(`Certifications migration failed: ${certsError.message}`)
     }
+    console.log('✅ Certifications migrated successfully')
 
     console.log('Journey data migration completed successfully!')
 
