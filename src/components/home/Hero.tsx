@@ -58,7 +58,7 @@ export default function Hero() {
 
   if (loading) {
     return (
-      <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-20 md:pt-0">
+      <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-24 md:pt-0">
         <AnimatedBackground variant="particles" intensity="medium" />
         <div className="text-center relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
@@ -73,7 +73,7 @@ export default function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-20 md:pt-0">
+    <section className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden pt-24 md:pt-0">
       {/* Animated Background */}
       <AnimatedBackground variant="particles" intensity="medium" />
       
@@ -152,11 +152,29 @@ export default function Hero() {
 
         {/* CTA Buttons */}
         <motion.div 
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+          className="flex flex-col sm:flex-row gap-4 justify-center mb-16 flex-wrap"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
+          <motion.a 
+            href="#skills"
+            className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
+            Technical Skills
+          </motion.a>
+          <motion.a 
+            href="#current-focus"
+            className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
+            Current Learning
+          </motion.a>
           <motion.a 
             href={heroContent.primary_cta_link}
             className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
@@ -168,12 +186,12 @@ export default function Hero() {
           </motion.a>
           <motion.a 
             href={heroContent.secondary_cta_link}
-            className="px-8 py-4 border-2 border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-gray-400 hover:text-white transition-colors duration-200"
+            className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
-            {heroContent.secondary_cta_text}
+            My Journey
           </motion.a>
         </motion.div>
 

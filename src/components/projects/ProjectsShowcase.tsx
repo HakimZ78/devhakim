@@ -59,7 +59,7 @@ const categoryInfo = {
 const statusInfo = {
   completed: { label: 'Completed', color: 'text-green-400', bg: 'bg-green-500/20' },
   'in-progress': { label: 'In Progress', color: 'text-blue-400', bg: 'bg-blue-500/20' },
-  planning: { label: 'Planning', color: 'text-gray-400', bg: 'bg-gray-500/20' }
+  planning: { label: 'Planning', color: 'text-yellow-400 font-semibold', bg: 'bg-yellow-500/20' }
 };
 
 const difficultyInfo = {
@@ -219,7 +219,7 @@ export default function ProjectsShowcase() {
                 <div className={`h-48 bg-gradient-to-br ${categoryData.color} relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20"></div>
                   <div className="absolute top-4 left-4 flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${categoryData.bgColor} ${categoryData.textColor} border ${categoryData.borderColor}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${categoryData.bgColor} ${categoryData.textColor} border ${categoryData.borderColor}`}>
                       {categoryData.label}
                     </span>
                     {project.featured && (
@@ -230,7 +230,7 @@ export default function ProjectsShowcase() {
                     )}
                   </div>
                   <div className="absolute bottom-4 right-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusData.bg} ${statusData.color}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusData.bg} ${statusData.color}`}>
                       {statusData.label}
                     </span>
                   </div>

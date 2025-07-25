@@ -271,7 +271,7 @@ export default function InteractiveSkillsShowcase() {
   }
 
   return (
-    <section className="py-12 px-6 bg-slate-800/50">
+    <section id="skills" className="py-12 px-6 bg-slate-800/50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4">Technical Skills</h2>
@@ -385,8 +385,8 @@ export default function InteractiveSkillsShowcase() {
         </div>
 
         {/* Current Learning Progress */}
-        <div className="bg-slate-700/30 backdrop-blur-sm rounded-xl p-8 border border-slate-600/50">
-          <h3 className="text-2xl font-bold text-white mb-6">Current Learning Focus</h3>
+        <div id="current-focus" className="bg-slate-700/30 backdrop-blur-sm rounded-xl p-8 border border-slate-600/50">
+          <h3 className="text-2xl font-bold text-white mb-6 text-center">Current Learning Focus</h3>
           
           <div className="grid md:grid-cols-2 gap-6">
             {currentFocus.map((item) => {
