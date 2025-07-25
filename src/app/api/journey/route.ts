@@ -1,19 +1,62 @@
 import { NextResponse } from 'next/server'
 import { journeyData } from '@/data/journey-data'
+import { createClient } from '@supabase/supabase-js'
+
+// Service role client for admin operations
+const supabaseServiceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseService = createClient(supabaseServiceUrl, supabaseServiceKey)
 
 export async function GET() {
   try {
-    // Convert the static journey data to the format expected by the admin
-    const milestones = journeyData.milestones.map(milestone => ({
-      ...milestone,
-      details: [], // Add empty details array if needed by admin
-      status: milestone.completed ? 'completed' : 'upcoming'
-    }))
+    // Try to load from database first
+    const [learningPathsRes, milestonesRes, certificationsRes] = await Promise.all([
+      supabaseService.from('learning_paths').select('*').order('order_index'),
+      supabaseService.from('milestones').select('*').order('order_index'),
+      supabaseService.from('certifications').select('*').order('order_index')
+    ])
 
-    return NextResponse.json({
-      success: true,
-      data: milestones
-    })
+    // Check if we have data in database
+    const hasDbData = learningPathsRes.data?.length || milestonesRes.data?.length || certificationsRes.data?.length
+
+    if (hasDbData) {
+      // Return database data
+      return NextResponse.json({
+        success: true,
+        data: {
+          learningPaths: learningPathsRes.data || [],
+          milestones: milestonesRes.data || [],
+          certifications: certificationsRes.data || []
+        }
+      })
+    } else {
+      // Return static data with conversion for admin compatibility
+      return NextResponse.json({
+        success: true,
+        data: {
+          learningPaths: journeyData.learningPaths,
+          milestones: journeyData.milestones.map(milestone => ({
+            id: milestone.id,
+            date: milestone.target_date,
+            title: milestone.title,
+            description: milestone.description,
+            status: milestone.completed ? 'completed' : (milestone.progress > 0 ? 'in-progress' : 'upcoming'),
+            category: milestone.category.toLowerCase(),
+            details: [`Progress: ${milestone.progress}%`],
+            order_index: milestone.order_index
+          })),
+          certifications: journeyData.certifications.map(cert => ({
+            id: cert.id,
+            title: cert.title,
+            issuer: cert.provider,
+            date_earned: cert.completion_date || cert.expected_date || '',
+            description: cert.description,
+            skills: cert.skills,
+            order_index: cert.order_index
+          }))
+        }
+      })
+    }
 
   } catch (error) {
     console.error('API error:', error)

@@ -191,6 +191,30 @@ export default function AdminDashboard() {
     router.push('/admin');
   };
 
+  const handleMigrateJourney = async () => {
+    if (!confirm('This will migrate your existing journey data from static files to the database. Your current data will be preserved. Continue?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/journey/migrate', {
+        method: 'POST'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`Migration successful! Migrated ${result.migrated.learningPaths} learning paths, ${result.migrated.milestones} milestones, and ${result.migrated.certifications} certifications.`);
+        window.location.reload();
+      } else {
+        alert(`Migration failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Migration error:', error);
+      alert('Migration failed. Please check the console for details.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Admin Header */}
@@ -282,7 +306,7 @@ export default function AdminDashboard() {
           className="mt-12 bg-slate-800/30 rounded-xl p-6 border border-slate-700"
         >
           <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
             <Link
               href="/admin/settings"
               className="flex items-center px-4 py-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors group"
@@ -296,6 +320,13 @@ export default function AdminDashboard() {
             >
               <LayoutDashboard className="w-5 h-5 text-gray-400 group-hover:text-white mr-3" />
               <span className="text-gray-300 group-hover:text-white">Refresh Data</span>
+            </button>
+            <button
+              onClick={handleMigrateJourney}
+              className="flex items-center px-4 py-3 bg-teal-600/50 rounded-lg hover:bg-teal-600 transition-colors group"
+            >
+              <MapPin className="w-5 h-5 text-teal-400 group-hover:text-white mr-3" />
+              <span className="text-teal-300 group-hover:text-white">Migrate Journey Data</span>
             </button>
           </div>
         </motion.div>
