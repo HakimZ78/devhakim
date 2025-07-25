@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Trophy, 
@@ -14,51 +13,86 @@ import {
   Award,
   BookOpen,
   Target,
-  Plus
+  Plus,
+  FileText,
+  Trash2
 } from 'lucide-react'
-import { useJourneyData } from '@/hooks/useJourneyData'
 import { useAdmin } from '@/contexts/AdminContext'
-import type { Certification } from '@/lib/supabase'
+import { useState, useEffect } from 'react'
+
+interface Certification {
+  id: string
+  title: string
+  issuer: string
+  date_earned: string
+  credential_id?: string
+  status: string
+  description: string
+  skills: string[]
+  certificate_pdf?: string
+  order_index: number
+}
 
 interface EditingCertification {
   id: string
   title: string
-  provider: string
+  issuer: string
+  date_earned: string
+  credential_id: string
+  status: string
   description: string
-  status: 'completed' | 'in_progress' | 'planned'
-  completion_date?: string
-  expected_date?: string
-  certificate_url?: string
   skills: string[]
+  certificate_pdf: string
 }
 
 export default function EditableCertificationsShowcase() {
-  const { data, loading, error, updateCertification, createCertification } = useJourneyData()
   const { isEditMode } = useAdmin()
+  const [data, setData] = useState<Certification[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [editingCert, setEditingCert] = useState<EditingCertification | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
+  const [pdfViewerOpen, setPdfViewerOpen] = useState<string | null>(null)
   const [newCertification, setNewCertification] = useState({
     title: '',
-    provider: '',
+    issuer: '',
+    date_earned: '',
+    credential_id: '',
+    status: 'completed',
     description: '',
-    status: 'planned' as 'completed' | 'in_progress' | 'planned',
-    completion_date: '',
-    expected_date: '',
-    certificate_url: '',
-    skills: [] as string[]
+    skills: [] as string[],
+    certificate_pdf: ''
   })
+
+  useEffect(() => {
+    fetchCertifications()
+  }, [])
+
+  const fetchCertifications = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/journey/certifications')
+      if (!response.ok) throw new Error('Failed to fetch certifications')
+      const certificationsData = await response.json()
+      setData(certificationsData)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleEditCertification = (cert: Certification) => {
     setEditingCert({
       id: cert.id,
       title: cert.title,
-      provider: cert.provider,
-      description: cert.description,
+      issuer: cert.issuer,
+      date_earned: cert.date_earned || '',
+      credential_id: cert.credential_id || '',
       status: cert.status,
-      completion_date: cert.completion_date || '',
-      expected_date: cert.expected_date || '',
-      certificate_url: cert.certificate_url || '',
-      skills: cert.skills || []
+      description: cert.description,
+      skills: cert.skills || [],
+      certificate_pdf: cert.certificate_pdf || ''
     })
   }
 
@@ -66,14 +100,20 @@ export default function EditableCertificationsShowcase() {
     if (!editingCert) return
     
     try {
-      const updateData = {
-        ...editingCert,
-        completion_date: editingCert.completion_date || undefined,
-        expected_date: editingCert.expected_date || undefined,
-        certificate_url: editingCert.certificate_url || undefined
-      }
-      await updateCertification(updateData)
+      const updatedData = data.map(cert => 
+        cert.id === editingCert.id 
+          ? { ...cert, ...editingCert }
+          : cert
+      )
+      setData(updatedData)
       setEditingCert(null)
+      
+      // TODO: Save to API when backend is ready
+      // await fetch('/api/journey/certifications', {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(editingCert)
+      // })
     } catch (error) {
       console.error('Failed to save certification:', error)
     }
@@ -88,29 +128,28 @@ export default function EditableCertificationsShowcase() {
   }
 
   const handleSaveNew = async () => {
-    if (!newCertification.title || !newCertification.provider || !newCertification.description) return
+    if (!newCertification.title || !newCertification.issuer || !newCertification.description) return
     
     try {
-      const nextOrderIndex = data.certifications.length + 1
-      const certData = {
+      const newCert: Certification = {
+        id: Date.now().toString(),
         ...newCertification,
-        completion_date: newCertification.completion_date || undefined,
-        expected_date: newCertification.expected_date || undefined,
-        certificate_url: newCertification.certificate_url || undefined,
-        order_index: nextOrderIndex
+        order_index: data.length + 1
       }
-      await createCertification(certData)
+      setData([...data, newCert])
       setNewCertification({
         title: '',
-        provider: '',
+        issuer: '',
+        date_earned: '',
+        credential_id: '',
+        status: 'completed',
         description: '',
-        status: 'planned' as 'completed' | 'in_progress' | 'planned',
-        completion_date: '',
-        expected_date: '',
-        certificate_url: '',
-        skills: []
+        skills: [],
+        certificate_pdf: ''
       })
       setIsAddingNew(false)
+      
+      // TODO: Save to API when backend is ready
     } catch (error) {
       console.error('Failed to create new certification:', error)
     }
@@ -119,54 +158,51 @@ export default function EditableCertificationsShowcase() {
   const handleCancelNew = () => {
     setNewCertification({
       title: '',
-      provider: '',
+      issuer: '',
+      date_earned: '',
+      credential_id: '',
+      status: 'completed',
       description: '',
-      status: 'planned' as 'completed' | 'in_progress' | 'planned',
-      completion_date: '',
-      expected_date: '',
-      certificate_url: '',
-      skills: []
+      skills: [],
+      certificate_pdf: ''
     })
     setIsAddingNew(false)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'from-green-500 to-emerald-500'
-      case 'in_progress':
-        return 'from-blue-500 to-cyan-500'
-      case 'planned':
-        return 'from-gray-500 to-slate-500'
-      default:
-        return 'from-purple-500 to-pink-500'
+  const handleViewCertificate = (pdfPath: string) => {
+    setPdfViewerOpen(pdfPath)
+  }
+
+  const handleClosePdfViewer = () => {
+    setPdfViewerOpen(null)
+  }
+
+  const handleDeleteCertification = async (certId: string) => {
+    if (!confirm('Are you sure you want to delete this certification? This action cannot be undone.')) {
+      return
     }
+
+    try {
+      const updatedData = data.filter(cert => cert.id !== certId)
+      setData(updatedData)
+      
+      // TODO: Delete from API when backend is ready
+      // await fetch('/api/journey/certifications', {
+      //   method: 'DELETE',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ id: certId })
+      // })
+    } catch (error) {
+      console.error('Failed to delete certification:', error)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    return 'from-green-500 to-emerald-500'
   }
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-5 h-5" />
-      case 'in_progress':
-        return <Clock className="w-5 h-5" />
-      case 'planned':
-        return <Target className="w-5 h-5" />
-      default:
-        return <BookOpen className="w-5 h-5" />
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Completed'
-      case 'in_progress':
-        return 'In Progress'
-      case 'planned':
-        return 'Planned'
-      default:
-        return 'Unknown'
-    }
+    return <Award className="w-5 h-5" />
   }
 
   if (loading) {
@@ -191,8 +227,41 @@ export default function EditableCertificationsShowcase() {
     )
   }
 
+  // PDF Viewer Modal Component
+  const PDFViewerModal = ({ pdfPath, onClose }: { pdfPath: string; onClose: () => void }) => (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-4xl h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-slate-600">
+          <h3 className="text-lg font-bold text-white">Certificate</h3>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex-1 p-4">
+          <iframe
+            src={pdfPath}
+            className="w-full h-full rounded-lg"
+            title="Certificate PDF"
+          />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
-    <div className="space-y-6">
+    <>
+      {/* PDF Viewer Modal */}
+      {pdfViewerOpen && (
+        <PDFViewerModal 
+          pdfPath={pdfViewerOpen} 
+          onClose={handleClosePdfViewer} 
+        />
+      )}
+
+      <div className="space-y-6">
       {/* Add New Button */}
       {isEditMode && !isAddingNew && (
         <div className="flex justify-end">
@@ -218,7 +287,7 @@ export default function EditableCertificationsShowcase() {
             <div className="flex space-x-2">
               <button
                 onClick={handleSaveNew}
-                disabled={!newCertification.title || !newCertification.provider || !newCertification.description}
+                disabled={!newCertification.title || !newCertification.issuer || !newCertification.description}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Save
@@ -245,60 +314,56 @@ export default function EditableCertificationsShowcase() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Provider *</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Issuer *</label>
               <input
                 type="text"
-                value={newCertification.provider}
-                onChange={(e) => setNewCertification(prev => ({ ...prev, provider: e.target.value }))}
-                placeholder="e.g., Amazon Web Services"
+                value={newCertification.issuer}
+                onChange={(e) => setNewCertification(prev => ({ ...prev, issuer: e.target.value }))}
+                placeholder="e.g., FreeCodeCamp"
                 className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select
-                value={newCertification.status}
-                onChange={(e) => setNewCertification(prev => ({ ...prev, status: e.target.value as any }))}
+              <label className="block text-sm font-medium text-gray-300 mb-2">Date Earned *</label>
+              <input
+                type="date"
+                value={newCertification.date_earned}
+                onChange={(e) => setNewCertification(prev => ({ ...prev, date_earned: e.target.value }))}
                 className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="planned">Planned</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Credential ID</label>
+              <input
+                type="text"
+                value={newCertification.credential_id}
+                onChange={(e) => setNewCertification(prev => ({ ...prev, credential_id: e.target.value }))}
+                placeholder="e.g., PY2023-1234"
+                className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                {newCertification.status === 'completed' ? 'Completion Date' : 'Expected Date'}
+                Certificate PDF Path 
+                <span className="text-xs text-gray-400 ml-1">(Place PDF in public/certificates/ folder)</span>
               </label>
               <input
-                type="date"
-                value={newCertification.status === 'completed' ? newCertification.completion_date : newCertification.expected_date}
-                onChange={(e) => setNewCertification(prev => ({ 
-                  ...prev, 
-                  ...(newCertification.status === 'completed' 
-                    ? { completion_date: e.target.value } 
-                    : { expected_date: e.target.value })
-                }))}
+                type="text"
+                value={newCertification.certificate_pdf}
+                onChange={(e) => setNewCertification(prev => ({ ...prev, certificate_pdf: e.target.value }))}
+                placeholder="/certificates/freecodecamp-python.pdf"
                 className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
+              <p className="text-xs text-gray-400 mt-1">
+                📁 Upload your PDF to: <code className="bg-slate-600/50 px-1 rounded">public/certificates/filename.pdf</code><br />
+                🔗 Then enter path: <code className="bg-slate-600/50 px-1 rounded">/certificates/filename.pdf</code>
+              </p>
             </div>
             
-            {newCertification.status === 'completed' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Certificate URL</label>
-                <input
-                  type="url"
-                  value={newCertification.certificate_url}
-                  onChange={(e) => setNewCertification(prev => ({ ...prev, certificate_url: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            )}
-            
-            <div className={newCertification.status === 'completed' ? 'md:col-span-1' : 'md:col-span-2'}>
+            <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Skills (comma-separated)</label>
               <input
                 type="text"
@@ -307,7 +372,7 @@ export default function EditableCertificationsShowcase() {
                   ...prev, 
                   skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean) 
                 }))}
-                placeholder="e.g., React, TypeScript, Node.js"
+                placeholder="e.g., Python, Flask, APIs"
                 className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -327,7 +392,7 @@ export default function EditableCertificationsShowcase() {
       )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data.certifications.map((cert, index) => {
+        {data.map((cert, index) => {
           const isEditing = editingCert?.id === cert.id
         
           return (
@@ -363,22 +428,31 @@ export default function EditableCertificationsShowcase() {
                 ) : (
                   <>
                     {isEditMode && (
-                      <button
-                        onClick={() => handleEditCertification(cert)}
-                        className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleEditCertification(cert)}
+                          className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
+                          title="Edit Certification"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCertification(cert.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                          title="Delete Certification"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </>
                     )}
-                    {cert.certificate_url && cert.status === 'completed' && (
-                      <a
-                        href={cert.certificate_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    {cert.certificate_pdf && (
+                      <button
+                        onClick={() => handleViewCertificate(cert.certificate_pdf!)}
                         className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
+                        title="View Certificate"
                       >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                        <FileText className="w-4 h-4" />
+                      </button>
                     )}
                   </>
                 )}
@@ -392,30 +466,30 @@ export default function EditableCertificationsShowcase() {
                 <div className="space-y-2">
                   <input
                     type="text"
-                    value={editingCert.title}
+                    value={editingCert?.title || ''}
                     onChange={(e) => setEditingCert(prev => prev ? { ...prev, title: e.target.value } : null)}
                     className="font-bold text-white bg-slate-600/50 rounded px-3 py-2 w-full"
                     placeholder="Certification Title"
                   />
                   <input
                     type="text"
-                    value={editingCert.provider}
-                    onChange={(e) => setEditingCert(prev => prev ? { ...prev, provider: e.target.value } : null)}
+                    value={editingCert?.issuer || ''}
+                    onChange={(e) => setEditingCert(prev => prev ? { ...prev, issuer: e.target.value } : null)}
                     className="text-sm text-gray-300 bg-slate-600/50 rounded px-3 py-1 w-full"
-                    placeholder="Provider/Institution"
+                    placeholder="Issuer/Institution"
                   />
                 </div>
               ) : (
                 <>
                   <h3 className="font-bold text-white text-lg">{cert.title}</h3>
-                  <p className="text-blue-400 text-sm font-medium">{cert.provider}</p>
+                  <p className="text-blue-400 text-sm font-medium">{cert.issuer}</p>
                 </>
               )}
 
               {/* Description */}
               {isEditing ? (
                 <textarea
-                  value={editingCert.description}
+                  value={editingCert?.description || ''}
                   onChange={(e) => setEditingCert(prev => prev ? { ...prev, description: e.target.value } : null)}
                   className="text-gray-300 bg-slate-600/50 rounded px-3 py-2 w-full resize-none"
                   rows={3}
@@ -425,88 +499,60 @@ export default function EditableCertificationsShowcase() {
                 <p className="text-gray-300 text-sm leading-relaxed">{cert.description}</p>
               )}
 
-              {/* Status */}
+              {/* Credential ID */}
+              {cert.credential_id && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-400">Credential ID:</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editingCert?.credential_id || ''}
+                      onChange={(e) => setEditingCert(prev => prev ? { ...prev, credential_id: e.target.value } : null)}
+                      className="text-xs text-gray-300 bg-slate-600/50 rounded px-2 py-1 flex-1"
+                    />
+                  ) : (
+                    <span className="text-xs text-gray-300 font-mono">{cert.credential_id}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Date Earned */}
               <div className="flex items-center space-x-2">
-                {isEditing ? (
-                  <select
-                    value={editingCert.status}
-                    onChange={(e) => setEditingCert(prev => prev ? { ...prev, status: e.target.value as any } : null)}
-                    className="text-sm bg-slate-600/50 rounded px-2 py-1 text-white"
-                  >
-                    <option value="completed">Completed</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="planned">Planned</option>
-                  </select>
+                <Calendar className="w-4 h-4 text-gray-400" />
+                {isEditing && editingCert ? (
+                  <input
+                    type="date"
+                    value={editingCert.date_earned || ''}
+                    onChange={(e) => setEditingCert(prev => prev ? { ...prev, date_earned: e.target.value } : null)}
+                    className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1 flex-1"
+                  />
                 ) : (
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getStatusColor(cert.status)} text-white`}>
-                    {getStatusText(cert.status)}
+                  <span className="text-sm text-gray-300">
+                    Earned: {new Date(cert.date_earned).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
                   </span>
                 )}
               </div>
 
-              {/* Dates */}
-              <div className="space-y-2">
-                {isEditing ? (
-                  <div className="space-y-2">
-                    {editingCert.status === 'completed' ? (
-                      <div>
-                        <label className="text-xs text-gray-400 block mb-1">Completion Date</label>
-                        <input
-                          type="date"
-                          value={editingCert.completion_date}
-                          onChange={(e) => setEditingCert(prev => prev ? { ...prev, completion_date: e.target.value } : null)}
-                          className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1 w-full"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="text-xs text-gray-400 block mb-1">Expected Date</label>
-                        <input
-                          type="date"
-                          value={editingCert.expected_date}
-                          onChange={(e) => setEditingCert(prev => prev ? { ...prev, expected_date: e.target.value } : null)}
-                          className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1 w-full"
-                        />
-                      </div>
-                    )}
-                    {editingCert.status === 'completed' && (
-                      <div>
-                        <label className="text-xs text-gray-400 block mb-1">Certificate URL</label>
-                        <input
-                          type="url"
-                          value={editingCert.certificate_url}
-                          onChange={(e) => setEditingCert(prev => prev ? { ...prev, certificate_url: e.target.value } : null)}
-                          className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1 w-full"
-                          placeholder="https://..."
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    {cert.status === 'completed' && cert.completion_date ? (
-                      <span className="text-sm text-gray-300">
-                        Completed: {new Date(cert.completion_date).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                    ) : cert.expected_date ? (
-                      <span className="text-sm text-gray-300">
-                        Expected: {new Date(cert.expected_date).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-400">Date TBD</span>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Certificate PDF */}
+              {isEditing && (
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">
+                    Certificate PDF Path 
+                    <span className="text-xs text-gray-500 ml-1">(public/certificates/)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCert?.certificate_pdf || ''}
+                    onChange={(e) => setEditingCert(prev => prev ? { ...prev, certificate_pdf: e.target.value } : null)}
+                    className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1 w-full"
+                    placeholder="/certificates/my-cert.pdf"
+                  />
+                </div>
+              )}
 
               {/* Skills */}
               <div>
@@ -515,7 +561,7 @@ export default function EditableCertificationsShowcase() {
                     <label className="text-xs text-gray-400 block mb-1">Skills (comma-separated)</label>
                     <input
                       type="text"
-                      value={editingCert.skills.join(', ')}
+                      value={editingCert?.skills?.join(', ') || ''}
                       onChange={(e) => setEditingCert(prev => prev ? { 
                         ...prev, 
                         skills: e.target.value.split(',').map(s => s.trim()).filter(Boolean) 
@@ -542,6 +588,7 @@ export default function EditableCertificationsShowcase() {
           )
         })}
       </div>
-    </div>
+      </div>
+    </>
   )
 }

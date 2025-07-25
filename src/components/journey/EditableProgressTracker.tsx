@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Calendar, 
@@ -13,72 +13,113 @@ import {
   X,
   Plus
 } from 'lucide-react'
-import { useJourneyData } from '@/hooks/useJourneyData'
 import { useAdmin } from '@/contexts/AdminContext'
-import type { Milestone } from '@/lib/supabase'
 
-interface EditingMilestone {
+interface ProgressItem {
+  skill: string
+  current_level: number
+  target_level: number
+  last_updated: string
+  evidence: string[]
+}
+
+interface ProgressCategory {
   id: string
-  title: string
-  description: string
-  target_date: string
-  completed: boolean
-  progress: number
   category: string
+  items: ProgressItem[]
+}
+
+interface EditingItem {
+  categoryId: string
+  itemIndex: number
+  skill: string
+  current_level: number
+  target_level: number
+  evidence: string[]
 }
 
 export default function EditableProgressTracker() {
-  const { data, loading, error, updateMilestone, createMilestone } = useJourneyData()
   const { isEditMode } = useAdmin()
-  const [editingMilestone, setEditingMilestone] = useState<EditingMilestone | null>(null)
+  const [data, setData] = useState<ProgressCategory[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [editingItem, setEditingItem] = useState<EditingItem | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
-  const [newMilestone, setNewMilestone] = useState({
-    title: '',
-    description: '',
-    target_date: '',
-    completed: false,
-    progress: 0,
-    category: 'Project'
+  const [newItem, setNewItem] = useState({
+    skill: '',
+    current_level: 70,
+    target_level: 80,
+    evidence: ['']
   })
+  const [selectedCategory, setSelectedCategory] = useState('')
 
-  const handleEditMilestone = (milestone: Milestone) => {
-    setEditingMilestone({
-      id: milestone.id,
-      title: milestone.title,
-      description: milestone.description,
-      target_date: milestone.target_date,
-      completed: milestone.completed,
-      progress: milestone.progress,
-      category: milestone.category
+  useEffect(() => {
+    fetchProgressData()
+  }, [])
+
+  const fetchProgressData = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/journey/progress')
+      if (!response.ok) throw new Error('Failed to fetch progress data')
+      const progressData = await response.json()
+      setData(progressData)
+      if (progressData.length > 0) {
+        setSelectedCategory(progressData[0].id)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEditItem = (categoryId: string, itemIndex: number, item: ProgressItem) => {
+    setEditingItem({
+      categoryId,
+      itemIndex,
+      skill: item.skill,
+      current_level: item.current_level,
+      target_level: item.target_level,
+      evidence: [...item.evidence]
     })
   }
 
-  const handleSaveMilestone = async () => {
-    if (!editingMilestone) return
+  const handleSaveItem = async () => {
+    if (!editingItem) return
     
     try {
-      await updateMilestone(editingMilestone)
-      setEditingMilestone(null)
+      const updatedData = data.map(category => {
+        if (category.id === editingItem.categoryId) {
+          const updatedItems = [...category.items]
+          updatedItems[editingItem.itemIndex] = {
+            skill: editingItem.skill,
+            current_level: editingItem.current_level,
+            target_level: editingItem.target_level,
+            last_updated: new Date().toISOString().split('T')[0],
+            evidence: editingItem.evidence.filter(e => e.trim() !== '')
+          }
+          return { ...category, items: updatedItems }
+        }
+        return category
+      })
+      
+      setData(updatedData)
+      setEditingItem(null)
+      
+      // TODO: Save to API when backend is ready
+      // await fetch('/api/journey/progress', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(updatedData)
+      // })
     } catch (error) {
-      console.error('Failed to save milestone:', error)
+      console.error('Failed to save item:', error)
     }
   }
 
   const handleCancelEdit = () => {
-    setEditingMilestone(null)
-  }
-
-  const toggleMilestoneCompletion = async (milestone: Milestone) => {
-    try {
-      await updateMilestone({
-        id: milestone.id,
-        completed: !milestone.completed,
-        completion_date: !milestone.completed ? new Date().toISOString().split('T')[0] : undefined,
-        progress: !milestone.completed ? 100 : milestone.progress
-      })
-    } catch (error) {
-      console.error('Failed to toggle milestone:', error)
-    }
+    setEditingItem(null)
   }
 
   const handleAddNew = () => {
@@ -86,47 +127,85 @@ export default function EditableProgressTracker() {
   }
 
   const handleSaveNew = async () => {
-    if (!newMilestone.title || !newMilestone.description || !newMilestone.target_date) return
+    if (!newItem.skill || !selectedCategory) return
     
     try {
-      const nextOrderIndex = data.milestones.length + 1
-      await createMilestone({
-        ...newMilestone,
-        order_index: nextOrderIndex
+      const updatedData = data.map(category => {
+        if (category.id === selectedCategory) {
+          return {
+            ...category,
+            items: [...category.items, {
+              skill: newItem.skill,
+              current_level: newItem.current_level,
+              target_level: newItem.target_level,
+              last_updated: new Date().toISOString().split('T')[0],
+              evidence: newItem.evidence.filter(e => e.trim() !== '')
+            }]
+          }
+        }
+        return category
       })
-      setNewMilestone({
-        title: '',
-        description: '',
-        target_date: '',
-        completed: false,
-        progress: 0,
-        category: 'Project'
+      
+      setData(updatedData)
+      setNewItem({
+        skill: '',
+        current_level: 70,
+        target_level: 80,
+        evidence: ['']
       })
       setIsAddingNew(false)
+      
+      // TODO: Save to API when backend is ready
     } catch (error) {
-      console.error('Failed to create new milestone:', error)
+      console.error('Failed to create new item:', error)
     }
   }
 
   const handleCancelNew = () => {
-    setNewMilestone({
-      title: '',
-      description: '',
-      target_date: '',
-      completed: false,
-      progress: 0,
-      category: 'Project'
+    setNewItem({
+      skill: '',
+      current_level: 70,
+      target_level: 80,
+      evidence: ['']
     })
     setIsAddingNew(false)
   }
 
+  const addEvidenceField = () => {
+    if (editingItem) {
+      setEditingItem({ ...editingItem, evidence: [...editingItem.evidence, ''] })
+    } else {
+      setNewItem({ ...newItem, evidence: [...newItem.evidence, ''] })
+    }
+  }
+
+  const removeEvidenceField = (index: number) => {
+    if (editingItem) {
+      const newEvidence = editingItem.evidence.filter((_, i) => i !== index)
+      setEditingItem({ ...editingItem, evidence: newEvidence })
+    } else {
+      const newEvidence = newItem.evidence.filter((_, i) => i !== index)
+      setNewItem({ ...newItem, evidence: newEvidence })
+    }
+  }
+
+  const updateEvidenceField = (index: number, value: string) => {
+    if (editingItem) {
+      const newEvidence = [...editingItem.evidence]
+      newEvidence[index] = value
+      setEditingItem({ ...editingItem, evidence: newEvidence })
+    } else {
+      const newEvidence = [...newItem.evidence]
+      newEvidence[index] = value
+      setNewItem({ ...newItem, evidence: newEvidence })
+    }
+  }
+
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
-      case 'certification':
-        return 'from-yellow-500 to-orange-500'
-      case 'project':
+      case 'technical skills':
         return 'from-blue-500 to-cyan-500'
-      case 'technical skill':
+      case 'professional development':
         return 'from-green-500 to-emerald-500'
       default:
         return 'from-purple-500 to-pink-500'
@@ -135,12 +214,10 @@ export default function EditableProgressTracker() {
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
-      case 'certification':
+      case 'technical skills':
         return <Target className="w-4 h-4" />
-      case 'project':
+      case 'professional development':
         return <TrendingUp className="w-4 h-4" />
-      case 'technical skill':
-        return <CheckCircle className="w-4 h-4" />
       default:
         return <Clock className="w-4 h-4" />
     }
@@ -170,15 +247,36 @@ export default function EditableProgressTracker() {
 
   return (
     <div className="space-y-6">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {data.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              selectedCategory === category.id
+                ? `bg-gradient-to-r ${getCategoryColor(category.category)} text-white`
+                : 'bg-slate-700/30 text-gray-300 hover:bg-slate-600/40'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              {getCategoryIcon(category.category)}
+              <span>{category.category}</span>
+              <span className="text-xs opacity-70">({category.items.length})</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
       {/* Add New Button */}
-      {isEditMode && !isAddingNew && (
+      {isEditMode && !isAddingNew && selectedCategory && (
         <div className="flex justify-end">
           <button
             onClick={handleAddNew}
             className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Add New Milestone</span>
+            <span>Add New Skill</span>
           </button>
         </div>
       )}
@@ -191,11 +289,11 @@ export default function EditableProgressTracker() {
           className="bg-slate-700/30 backdrop-blur-sm rounded-xl border border-green-500/50 p-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Add New Milestone</h3>
+            <h3 className="text-lg font-bold text-white">Add New Skill Progress</h3>
             <div className="flex space-x-2">
               <button
                 onClick={handleSaveNew}
-                disabled={!newMilestone.title || !newMilestone.description || !newMilestone.target_date}
+                disabled={!newItem.skill}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Save
@@ -210,270 +308,274 @@ export default function EditableProgressTracker() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Title *</label>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Skill Name *</label>
               <input
                 type="text"
-                value={newMilestone.title}
-                onChange={(e) => setNewMilestone(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="e.g., Complete React Certification"
+                value={newItem.skill}
+                onChange={(e) => setNewItem(prev => ({ ...prev, skill: e.target.value }))}
+                placeholder="e.g., React Hooks"
                 className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-              <select
-                value={newMilestone.category}
-                onChange={(e) => setNewMilestone(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="Project">Project</option>
-                <option value="Education">Education</option>
-                <option value="Technical">Technical</option>
-                <option value="Career">Career</option>
-                <option value="Certification">Certification</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Target Date *</label>
-              <input
-                type="date"
-                value={newMilestone.target_date}
-                onChange={(e) => setNewMilestone(prev => ({ ...prev, target_date: e.target.value }))}
-                className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Progress (%)</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Current Level</label>
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={newMilestone.progress}
-                onChange={(e) => setNewMilestone(prev => ({ ...prev, progress: parseInt(e.target.value) }))}
-                className="w-full"
+                value={newItem.current_level}
+                onChange={(e) => setNewItem(prev => ({ ...prev, current_level: parseInt(e.target.value) }))}
+                className="w-full mb-2"
               />
-              <span className="text-sm text-gray-300">{newMilestone.progress}%</span>
+              <span className="text-sm text-gray-300">{newItem.current_level}%</span>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Target Level</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={newItem.target_level}
+                onChange={(e) => setNewItem(prev => ({ ...prev, target_level: parseInt(e.target.value) }))}
+                className="w-full mb-2"
+              />
+              <span className="text-sm text-gray-300">{newItem.target_level}%</span>
             </div>
             
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Description *</label>
-              <textarea
-                value={newMilestone.description}
-                onChange={(e) => setNewMilestone(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Brief description of this milestone"
-                rows={3}
-                className="w-full px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              <label className="block text-sm font-medium text-gray-300 mb-2">Evidence/Projects</label>
+              {newItem.evidence.map((evidence, index) => (
+                <div key={index} className="flex space-x-2 mb-2">
+                  <input
+                    type="text"
+                    value={evidence}
+                    onChange={(e) => updateEvidenceField(index, e.target.value)}
+                    placeholder="e.g., Portfolio Admin System"
+                    className="flex-1 px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  {newItem.evidence.length > 1 && (
+                    <button
+                      onClick={() => removeEvidenceField(index)}
+                      className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                onClick={addEvidenceField}
+                className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                <span className="text-sm">Add Evidence</span>
+              </button>
             </div>
           </div>
         </motion.div>
       )}
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {(data.milestones || []).map((milestone, index) => {
-        const isEditing = editingMilestone?.id === milestone.id
-        const targetDate = new Date(milestone.target_date)
-        const isOverdue = !milestone.completed && targetDate < new Date()
-        const daysUntilTarget = Math.ceil((targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-        
-        return (
-          <motion.div
-            key={milestone.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className={`bg-slate-700/30 backdrop-blur-sm rounded-xl border ${
-              milestone.completed 
-                ? 'border-green-500/30' 
-                : isOverdue 
-                ? 'border-red-500/30' 
-                : 'border-slate-600/50'
-            } p-6 hover:border-slate-500/50 transition-all duration-300`}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg bg-gradient-to-r ${getCategoryColor(milestone.category)}`}>
-                  {getCategoryIcon(milestone.category)}
-                </div>
-                <div className="flex-1">
-                  {isEditing ? (
-                    <div className="space-y-2">
+      {/* Progress Items */}
+      <div className="space-y-4">
+        {data.find(cat => cat.id === selectedCategory)?.items.map((item, index) => {
+          const category = data.find(cat => cat.id === selectedCategory)!
+          const isEditing = editingItem?.categoryId === selectedCategory && editingItem?.itemIndex === index
+          const progressDiff = item.target_level - item.current_level
+          
+          return (
+            <motion.div
+              key={`${selectedCategory}-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="bg-slate-700/30 backdrop-blur-sm rounded-xl border border-slate-600/50 p-6 hover:border-slate-500/50 transition-all duration-300"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg bg-gradient-to-r ${getCategoryColor(category.category)}`}>
+                    {getCategoryIcon(category.category)}
+                  </div>
+                  <div className="flex-1">
+                    {isEditing ? (
                       <input
                         type="text"
-                        value={editingMilestone.title}
-                        onChange={(e) => setEditingMilestone(prev => prev ? { ...prev, title: e.target.value } : null)}
+                        value={editingItem.skill}
+                        onChange={(e) => setEditingItem(prev => prev ? { ...prev, skill: e.target.value } : null)}
                         className="font-semibold text-white bg-slate-600/50 rounded px-3 py-1 w-full"
                       />
-                      <select
-                        value={editingMilestone.category}
-                        onChange={(e) => setEditingMilestone(prev => prev ? { ...prev, category: e.target.value } : null)}
-                        className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1"
+                    ) : (
+                      <h3 className="font-semibold text-white">{item.skill}</h3>
+                    )}
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-xs text-gray-400">Last updated: {item.last_updated}</span>
+                      {progressDiff > 0 && (
+                        <span className="text-xs bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded">
+                          +{progressDiff}% to target
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {isEditing ? (
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={handleSaveItem}
+                        className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                       >
-                        <option value="Certification">Certification</option>
-                        <option value="Project">Project</option>
-                        <option value="Technical Skill">Technical Skill</option>
-                        <option value="Other">Other</option>
-                      </select>
+                        <Save className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="p-1.5 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ) : (
-                    <>
-                      <h3 className="font-semibold text-white">{milestone.title}</h3>
-                      <span className="text-xs text-gray-400 bg-slate-600/30 px-2 py-1 rounded">
-                        {milestone.category}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {isEditing ? (
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={handleSaveMilestone}
-                      className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                    >
-                      <Save className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="p-1.5 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {isEditMode && (
+                    isEditMode && (
                       <button
-                        onClick={() => handleEditMilestone(milestone)}
+                        onClick={() => handleEditItem(selectedCategory, index, item)}
                         className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
                       >
                         <Edit3 className="w-3 h-3" />
                       </button>
-                    )}
-                    <button
-                      onClick={() => toggleMilestoneCompletion(milestone)}
-                      className={`p-1.5 rounded transition-colors ${
-                        milestone.completed 
-                          ? 'bg-green-600 text-white hover:bg-green-700' 
-                          : 'text-gray-400 hover:text-green-400'
-                      }`}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            {isEditing ? (
-              <textarea
-                value={editingMilestone.description}
-                onChange={(e) => setEditingMilestone(prev => prev ? { ...prev, description: e.target.value } : null)}
-                className="text-gray-300 bg-slate-600/50 rounded px-3 py-2 w-full resize-none mb-4"
-                rows={3}
-              />
-            ) : (
-              <p className="text-gray-300 text-sm mb-4">{milestone.description}</p>
-            )}
-
-            {/* Target Date */}
-            <div className="flex items-center space-x-2 mb-4">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              {isEditing ? (
-                <input
-                  type="date"
-                  value={editingMilestone.target_date}
-                  onChange={(e) => setEditingMilestone(prev => prev ? { ...prev, target_date: e.target.value } : null)}
-                  className="text-sm text-gray-300 bg-slate-600/50 rounded px-2 py-1"
-                />
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-300">
-                    Target: {targetDate.toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </span>
-                  {!milestone.completed && (
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      isOverdue 
-                        ? 'bg-red-900/30 text-red-400' 
-                        : daysUntilTarget <= 7 
-                        ? 'bg-yellow-900/30 text-yellow-400' 
-                        : 'bg-blue-900/30 text-blue-400'
-                    }`}>
-                      {isOverdue 
-                        ? `${Math.abs(daysUntilTarget)} days overdue` 
-                        : `${daysUntilTarget} days left`
-                      }
-                    </span>
+                    )
                   )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Progress */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">Progress</span>
-                {isEditing ? (
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={editingMilestone.progress}
-                      onChange={(e) => setEditingMilestone(prev => prev ? { ...prev, progress: parseInt(e.target.value) } : null)}
-                      className="w-20"
-                    />
-                    <span className="text-xs text-gray-300 w-8">{editingMilestone.progress}%</span>
+              {/* Progress Levels */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-400">Current Level</span>
+                    {isEditing ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={editingItem.current_level}
+                          onChange={(e) => setEditingItem(prev => prev ? { ...prev, current_level: parseInt(e.target.value) } : null)}
+                          className="w-20"
+                        />
+                        <span className="text-sm text-gray-300 w-8">{editingItem.current_level}%</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-300">{item.current_level}%</span>
+                    )}
                   </div>
-                ) : (
-                  <span className="text-xs text-gray-300">{milestone.progress}%</span>
-                )}
-              </div>
-              <div className="w-full bg-slate-600/50 rounded-full h-2">
-                <motion.div
-                  className={`h-2 rounded-full ${
-                    milestone.completed 
-                      ? 'bg-green-500' 
-                      : `bg-gradient-to-r ${getCategoryColor(milestone.category)}`
-                  }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${isEditing ? editingMilestone.progress : milestone.progress}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                />
-              </div>
-            </div>
-
-            {/* Completion Status */}
-            {milestone.completed && milestone.completion_date && (
-              <div className="mt-3 pt-3 border-t border-slate-600/30">
-                <div className="flex items-center space-x-2 text-green-400">
-                  <CheckCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    Completed on {new Date(milestone.completion_date).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </span>
+                  <div className="w-full bg-slate-600/50 rounded-full h-2">
+                    <motion.div
+                      className={`h-2 rounded-full bg-gradient-to-r ${getCategoryColor(category.category)}`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${isEditing ? editingItem.current_level : item.current_level}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-400">Target Level</span>
+                    {isEditing ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={editingItem.target_level}
+                          onChange={(e) => setEditingItem(prev => prev ? { ...prev, target_level: parseInt(e.target.value) } : null)}
+                          className="w-20"
+                        />
+                        <span className="text-sm text-gray-300 w-8">{editingItem.target_level}%</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-300">{item.target_level}%</span>
+                    )}
+                  </div>
+                  <div className="w-full bg-slate-600/50 rounded-full h-2">
+                    <motion.div
+                      className="h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${isEditing ? editingItem.target_level : item.target_level}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
-          </motion.div>
-        )
-      })}
+
+              {/* Evidence */}
+              <div>
+                <span className="text-sm text-gray-400 mb-2 block">Evidence/Projects:</span>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    {editingItem.evidence.map((evidence, evidenceIndex) => (
+                      <div key={evidenceIndex} className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={evidence}
+                          onChange={(e) => updateEvidenceField(evidenceIndex, e.target.value)}
+                          className="flex-1 px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500/50 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                        {editingItem.evidence.length > 1 && (
+                          <button
+                            onClick={() => removeEvidenceField(evidenceIndex)}
+                            className="p-2 text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={addEvidenceField}
+                      className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span className="text-sm">Add Evidence</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {item.evidence.map((evidence, evidenceIndex) => (
+                      <span
+                        key={evidenceIndex}
+                        className="px-3 py-1 bg-slate-600/30 text-gray-300 rounded-full text-sm"
+                      >
+                        {evidence}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )
+        })}
       </div>
+
+      {/* Empty State */}
+      {selectedCategory && data.find(cat => cat.id === selectedCategory)?.items.length === 0 && (
+        <div className="text-center py-12">
+          <Target className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-400 mb-2">No Skills Yet</h3>
+          <p className="text-gray-500 mb-4">Start tracking your progress by adding your first skill.</p>
+          {isEditMode && (
+            <button
+              onClick={handleAddNew}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Add First Skill
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

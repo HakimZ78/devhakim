@@ -153,7 +153,7 @@ export default function Footer() {
           {/* Career Stats */}
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">15+</div>
+              <div className="text-2xl font-bold text-blue-400">3</div>
               <div className="text-xs text-gray-400">Projects Built</div>
             </div>
             <div className="text-center">
@@ -162,7 +162,7 @@ export default function Footer() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-400">800+</div>
-              <div className="text-xs text-gray-400">Hours Coding</div>
+              <div className="text-xs text-gray-400">Hours Learning</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-400">12</div>
