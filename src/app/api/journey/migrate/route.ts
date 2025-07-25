@@ -35,9 +35,8 @@ export async function POST() {
     
     console.log('Clear results:', clearResults.map(result => ({ error: result.error?.message })))
 
-    // Migrate Learning Paths
+    // Migrate Learning Paths - let database generate UUIDs
     const learningPathsData = journeyData.learningPaths.map(path => ({
-      id: path.id,
       title: path.title,
       description: path.description,
       icon: path.icon,
@@ -57,9 +56,8 @@ export async function POST() {
     }
     console.log('✅ Learning paths migrated successfully')
 
-    // Migrate Milestones
+    // Migrate Milestones - let database generate UUIDs
     const milestonesData = journeyData.milestones.map(milestone => ({
-      id: milestone.id,
       title: milestone.title,
       description: milestone.description,
       target_date: milestone.target_date,
@@ -81,9 +79,8 @@ export async function POST() {
     }
     console.log('✅ Milestones migrated successfully')
 
-    // Migrate Certifications
+    // Migrate Certifications - let database generate UUIDs
     const certificationsData = journeyData.certifications.map(cert => ({
-      id: cert.id,
       title: cert.title,
       provider: cert.provider,
       description: cert.description,
