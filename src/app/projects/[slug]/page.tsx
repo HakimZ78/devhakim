@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import ProjectDetailContent from '@/components/projects/ProjectDetailContent';
-import { getProjectBySlug, getAllProjectSlugs } from '@/data/projects-data';
+import { getAllProjectSlugs } from '@/data/projects-data';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -8,9 +8,27 @@ interface ProjectDetailPageProps {
   }>;
 }
 
+async function getProjectBySlug(slug: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/projects?slug=${slug}`, {
+      cache: 'no-store' // Always fetch fresh data
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch project');
+    }
+    
+    const result = await response.json();
+    return result.success ? result.data : null;
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    return null;
+  }
+}
+
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
 
   if (!project) {
     notFound();

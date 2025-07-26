@@ -97,7 +97,7 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
           <div className="flex items-center text-gray-400 space-x-6">
             <div className="flex items-center">
               <Calendar className="w-5 h-5 mr-2" />
-              {project.completionDate.toLocaleDateString('en-US', {
+              {new Date(project.completion_date || project.completionDate).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long'
               })}
@@ -105,11 +105,11 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
           </div>
 
           <div className="flex gap-4">
-            {project.liveUrl && (
+            {(project.live_url || project.liveUrl) && (
               <motion.a
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href={project.liveUrl}
+                href={project.live_url || project.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -174,7 +174,7 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
               Problem Statement
             </h3>
             <p className="text-gray-300 leading-relaxed">
-              {project.problemStatement}
+              {project.problem_statement || project.problemStatement}
             </p>
           </div>
           
@@ -246,7 +246,7 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
         </h2>
         <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700">
           <ul className="space-y-3">
-            {project.keyLearnings.map((learning, index) => (
+            {(project.key_learnings || project.keyLearnings || []).map((learning, index) => (
               <motion.li
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -275,7 +275,7 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
         </h2>
         <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700">
           <ul className="grid md:grid-cols-2 gap-3">
-            {project.futureEnhancements.map((enhancement, index) => (
+            {(project.future_enhancements || project.futureEnhancements || []).map((enhancement, index) => (
               <motion.li
                 key={index}
                 initial={{ opacity: 0, y: 10 }}
@@ -312,9 +312,20 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
                 transition={{ duration: 0.5, delay: 1.1 + index * 0.1 }}
                 className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700 hover:border-slate-600 transition-colors"
               >
-                <div className="aspect-video bg-slate-700 flex items-center justify-center">
-                  <span className="text-gray-400 text-sm">Image Preview</span>
-                </div>
+                <div className="aspect-video bg-slate-700 flex items-center justify-center overflow-hidden">
+                {item.url ? (
+                  <img 
+                    src={item.url} 
+                    alt={item.caption}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <span className="text-gray-400 text-sm hidden">Image Preview</span>
+              </div>
                 <div className="p-4">
                   <p className="text-gray-300 text-sm">
                     {item.caption}
