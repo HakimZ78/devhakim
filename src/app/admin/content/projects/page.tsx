@@ -88,6 +88,22 @@ export default function ProjectsContentAdmin() {
   const handleSave = async () => {
     if (!editingProject) return;
 
+    // Validate required fields
+    if (!editingProject.title.trim()) {
+      setMessage({ type: 'error', text: 'Title is required' });
+      return;
+    }
+    
+    if (!editingProject.slug.trim()) {
+      setMessage({ type: 'error', text: 'Slug is required' });
+      return;
+    }
+    
+    if (!editingProject.description.trim()) {
+      setMessage({ type: 'error', text: 'Description is required' });
+      return;
+    }
+
     try {
       setSaving(true);
       setMessage(null);
@@ -145,6 +161,7 @@ export default function ProjectsContentAdmin() {
       const result = await response.json();
       
       if (result.success) {
+        console.log('Project deleted successfully:', id);
         setMessage({ type: 'success', text: 'Project deleted successfully!' });
         setProjects(prev => prev.filter(p => p.id !== id));
       } else {
@@ -324,7 +341,11 @@ export default function ProjectsContentAdmin() {
                   <input
                     type="text"
                     value={editingProject.title}
-                    onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
+                    onChange={(e) => {
+                      const newTitle = e.target.value;
+                      const newSlug = editingProject.slug || newTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      setEditingProject({ ...editingProject, title: newTitle, slug: newSlug });
+                    }}
                     className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                     placeholder="e.g., ForexAcuity Analytics Dashboard"
                   />
