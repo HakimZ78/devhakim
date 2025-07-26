@@ -17,9 +17,9 @@ export async function GET() {
       return NextResponse.json(getDefaultLearningPaths())
     }
     
-    // If no data exists, return default learning paths
+    // Return empty array if no data exists (after migration)
     if (!data || data.length === 0) {
-      return NextResponse.json(getDefaultLearningPaths())
+      return NextResponse.json([])
     }
     
     return NextResponse.json(data)

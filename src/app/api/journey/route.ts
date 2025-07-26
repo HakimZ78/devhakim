@@ -16,11 +16,11 @@ export async function GET() {
       supabaseService.from('certifications').select('*').order('order_index')
     ])
 
-    // Check if we have data in database
-    const hasDbData = learningPathsRes.data?.length || milestonesRes.data?.length || certificationsRes.data?.length
+    // Check if database tables exist/are accessible
+    const hasDbAccess = !learningPathsRes.error && !milestonesRes.error && !certificationsRes.error
 
-    if (hasDbData) {
-      // Return database data
+    if (hasDbAccess) {
+      // Return database data (even if empty arrays after migration)
       return NextResponse.json({
         success: true,
         data: {
@@ -30,7 +30,7 @@ export async function GET() {
         }
       })
     } else {
-      // Return static data with conversion for admin compatibility
+      // Only return static data if database is completely inaccessible
       return NextResponse.json({
         success: true,
         data: {

@@ -14,9 +14,9 @@ export async function GET() {
       return NextResponse.json(getDefaultCertifications())
     }
     
-    // If no data exists, return default certifications
+    // Return empty array if no data exists (after migration)
     if (!data || data.length === 0) {
-      return NextResponse.json(getDefaultCertifications())
+      return NextResponse.json([])
     }
     
     return NextResponse.json(data)
