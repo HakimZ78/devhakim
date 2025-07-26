@@ -31,7 +31,6 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
-import AdminOnly from '@/components/admin/AdminOnly';
 interface Command {
   id: string;
   title: string;
@@ -270,31 +269,6 @@ export default function CommandsReference() {
       },
       size: 100,
     }),
-    columnHelper.display({
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <AdminOnly>
-          <div className="flex space-x-1">
-            <button
-              onClick={() => handleEditCommand(row.original)}
-              className="p-1 text-gray-400 hover:text-blue-400 transition-colors duration-200"
-              title="Edit command"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleDeleteCommand(row.original.id)}
-              className="p-1 text-gray-400 hover:text-red-400 transition-colors duration-200"
-              title="Delete command"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </AdminOnly>
-      ),
-      size: 80,
-    }),
   ];
 
   const table = useReactTable({
@@ -479,15 +453,6 @@ export default function CommandsReference() {
 
             {/* Actions */}
             <div className="flex space-x-3">
-              <AdminOnly>
-                <button
-                  onClick={() => setIsAddingCommand(true)}
-                  className="flex items-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Command
-                </button>
-              </AdminOnly>
               <div className="relative group">
                 <button className="flex items-center px-4 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-500 transition-colors duration-200">
                   <Download className="w-4 h-4 mr-2" />

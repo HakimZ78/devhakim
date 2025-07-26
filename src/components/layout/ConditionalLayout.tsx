@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import Navigation from './Navigation';
 import Footer from './Footer';
-import AdminModeIndicator from '@/components/admin/AdminModeIndicator';
 
 export default function ConditionalLayout({
   children,
@@ -20,16 +19,12 @@ export default function ConditionalLayout({
     return <>{children}</>;
   }
 
-  // Hide admin mode indicator on all public pages
-  const showAdminIndicator = false;
-
-  // Regular pages get the full layout + admin mode indicator (except specified pages)
+  // Regular pages get the full layout
   return (
     <>
       <Navigation />
       {children}
       <Footer />
-      {showAdminIndicator && <AdminModeIndicator />}
     </>
   );
 }
