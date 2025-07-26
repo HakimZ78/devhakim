@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Service role client for admin operations
+const supabaseServiceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseService = createClient(supabaseServiceUrl, supabaseServiceKey)
+
+// Anonymous client for public operations
+const supabaseAnonUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseAnonUrl, supabaseAnonKey)
 
 export async function GET() {
   try {
@@ -69,17 +79,17 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('learning_paths')
       .insert(body)
       .select()
     
     if (error) {
       console.error('Error creating learning path:', error)
-      return NextResponse.json({ error: 'Failed to create learning path' }, { status: 500 })
+      return NextResponse.json({ success: false, error: 'Failed to create learning path' }, { status: 500 })
     }
     
-    return NextResponse.json(data[0])
+    return NextResponse.json({ success: true, data: data[0] })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -91,7 +101,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
     const { id, ...updateData } = body
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('learning_paths')
       .update({ ...updateData, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -99,10 +109,10 @@ export async function PUT(request: Request) {
     
     if (error) {
       console.error('Error updating learning path:', error)
-      return NextResponse.json({ error: 'Failed to update learning path' }, { status: 500 })
+      return NextResponse.json({ success: false, error: 'Failed to update learning path' }, { status: 500 })
     }
     
-    return NextResponse.json(data[0])
+    return NextResponse.json({ success: true, data: data[0] })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -118,14 +128,14 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'ID parameter is required' }, { status: 400 })
     }
     
-    const { error } = await supabase
+    const { error } = await supabaseService
       .from('learning_paths')
       .delete()
       .eq('id', id)
     
     if (error) {
       console.error('Error deleting learning path:', error)
-      return NextResponse.json({ error: 'Failed to delete learning path' }, { status: 500 })
+      return NextResponse.json({ success: false, error: 'Failed to delete learning path' }, { status: 500 })
     }
     
     return NextResponse.json({ success: true, message: 'Learning path deleted successfully' })

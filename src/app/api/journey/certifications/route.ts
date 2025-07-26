@@ -37,25 +37,23 @@ function getDefaultCertifications() {
     {
       id: '1',
       title: 'Python Developer Certificate',
-      issuer: 'FreeCodeCamp',
-      date_earned: '2023-06-15',
-      credential_id: 'PY2023-1234',
+      provider: 'FreeCodeCamp',
+      completion_date: '2023-06-15',
       status: 'completed',
       description: 'Comprehensive Python programming certification covering fundamentals, data structures, and web development.',
       skills: ['Python', 'Flask', 'APIs', 'Data Structures'],
-      certificate_pdf: '/certificates/freecodecamp-python.pdf',
+      certificate_url: '/certificates/freecodecamp-python.pdf',
       order_index: 1
     },
     {
       id: '2',
       title: 'Full Stack Web Development',
-      issuer: 'The Odin Project',
-      date_earned: '2024-03-20',
-      credential_id: 'FS2024-5678',
+      provider: 'The Odin Project',
+      completion_date: '2024-03-20',
       status: 'completed',
       description: 'Complete full-stack development curriculum including JavaScript, React, Node.js, and database management.',
       skills: ['JavaScript', 'React', 'Node.js', 'PostgreSQL', 'Git'],
-      certificate_pdf: '/certificates/odin-project-fullstack.pdf',
+      certificate_url: '/certificates/odin-project-fullstack.pdf',
       order_index: 2
     }
   ]
