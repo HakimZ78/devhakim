@@ -1,0 +1,101 @@
+table_name,column_name,data_type,is_nullable,column_default
+admin_sessions,id,uuid,NO,gen_random_uuid()
+admin_sessions,admin_id,uuid,YES,null
+admin_sessions,token,text,NO,null
+admin_sessions,expires_at,timestamp with time zone,NO,null
+admin_sessions,created_at,timestamp with time zone,YES,now()
+admin_users,id,uuid,NO,gen_random_uuid()
+admin_users,email,text,NO,null
+admin_users,password_hash,text,NO,null
+admin_users,name,text,YES,null
+admin_users,last_login,timestamp with time zone,YES,null
+admin_users,created_at,timestamp with time zone,YES,now()
+admin_users,updated_at,timestamp with time zone,YES,now()
+certifications,id,uuid,NO,gen_random_uuid()
+certifications,title,text,NO,null
+certifications,provider,text,NO,null
+certifications,description,text,NO,null
+certifications,status,text,YES,'planned'::text
+certifications,completion_date,date,YES,null
+certifications,expected_date,date,YES,null
+certifications,certificate_url,text,YES,null
+certifications,skills,ARRAY,YES,'{}'::text[]
+certifications,order_index,integer,NO,null
+certifications,created_at,timestamp with time zone,YES,now()
+certifications,updated_at,timestamp with time zone,YES,now()
+code_templates,id,uuid,NO,gen_random_uuid()
+code_templates,title,text,NO,null
+code_templates,description,text,YES,null
+code_templates,category,text,NO,null
+code_templates,language,text,NO,null
+code_templates,filename,text,YES,null
+code_templates,content,text,NO,null
+code_templates,tags,ARRAY,YES,'{}'::text[]
+code_templates,featured,boolean,YES,false
+code_templates,order_index,integer,YES,0
+code_templates,created_at,timestamp with time zone,YES,now()
+code_templates,updated_at,timestamp with time zone,YES,now()
+commands,id,uuid,NO,gen_random_uuid()
+commands,title,text,NO,null
+commands,description,text,NO,null
+commands,command,text,NO,null
+commands,category,text,NO,null
+commands,project_source,text,NO,null
+commands,tags,ARRAY,YES,'{}'::text[]
+commands,order_index,integer,YES,0
+commands,created_at,timestamp with time zone,YES,now()
+commands,updated_at,timestamp with time zone,YES,now()
+hero_content,id,uuid,NO,gen_random_uuid()
+hero_content,name,text,NO,null
+hero_content,subtitle,text,NO,null
+hero_content,roles,ARRAY,NO,'{}'::text[]
+hero_content,description,text,NO,null
+hero_content,primary_cta_text,text,NO,null
+hero_content,primary_cta_link,text,NO,null
+hero_content,secondary_cta_text,text,NO,null
+hero_content,secondary_cta_link,text,NO,null
+hero_content,linkedin_url,text,NO,null
+hero_content,email,text,NO,null
+hero_content,created_at,timestamp with time zone,NO,"timezone('utc'::text, now())"
+hero_content,updated_at,timestamp with time zone,NO,"timezone('utc'::text, now())"
+learning_paths,id,uuid,NO,gen_random_uuid()
+learning_paths,title,text,NO,null
+learning_paths,description,text,NO,null
+learning_paths,icon,text,NO,null
+learning_paths,color,text,NO,null
+learning_paths,progress,integer,YES,0
+learning_paths,order_index,integer,NO,null
+learning_paths,created_at,timestamp with time zone,YES,now()
+learning_paths,updated_at,timestamp with time zone,YES,now()
+milestones,id,uuid,NO,gen_random_uuid()
+milestones,title,text,NO,null
+milestones,description,text,NO,null
+milestones,target_date,text,NO,null
+milestones,completed,boolean,YES,false
+milestones,completion_date,text,YES,null
+milestones,progress,integer,YES,0
+milestones,category,text,NO,null
+milestones,order_index,integer,NO,null
+milestones,created_at,timestamp with time zone,YES,now()
+milestones,updated_at,timestamp with time zone,YES,now()
+milestones,details,ARRAY,YES,'{}'::text[]
+milestones,status,text,YES,'upcoming'::text
+path_steps,id,uuid,NO,gen_random_uuid()
+path_steps,path_id,uuid,YES,null
+path_steps,title,text,NO,null
+path_steps,description,text,NO,null
+path_steps,skills,ARRAY,YES,'{}'::text[]
+path_steps,completed,boolean,YES,false
+path_steps,in_progress,boolean,YES,false
+path_steps,estimated_time,text,NO,null
+path_steps,projects,ARRAY,YES,'{}'::text[]
+path_steps,order_index,integer,NO,null
+path_steps,created_at,timestamp with time zone,YES,now()
+path_steps,updated_at,timestamp with time zone,YES,now()
+progress_categories,id,uuid,NO,uuid_generate_v4()
+progress_categories,category,character varying,NO,null
+progress_categories,order_index,integer,YES,0
+progress_categories,created_at,timestamp with time zone,YES,CURRENT_TIMESTAMP
+progress_categories,updated_at,timestamp with time zone,YES,CURRENT_TIMESTAMP
+progress_items,id,uuid,NO,uuid_generate_v4()
+progress_items,category_id,uuid,YES,null

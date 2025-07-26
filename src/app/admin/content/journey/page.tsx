@@ -11,20 +11,9 @@ interface LearningPath {
   description: string;
   technologies: string[];
   progress: number;
-  milestones: string[];
   order_index: number;
 }
 
-interface Milestone {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  category: string;
-  achievement_type: string;
-  skills_gained: string[];
-  order_index: number;
-}
 
 interface Certification {
   id: string;
@@ -53,7 +42,6 @@ interface ProgressCategory {
 
 interface JourneyData {
   learningPaths: LearningPath[];
-  milestones: Milestone[];
   certifications: Certification[];
   progressCategories: ProgressCategory[];
 }
@@ -62,12 +50,11 @@ export default function JourneyAdminPage() {
   const { isAuthenticated } = useGlobalAdmin();
   const [journeyData, setJourneyData] = useState<JourneyData>({
     learningPaths: [],
-    milestones: [],
     certifications: [],
     progressCategories: []
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'paths' | 'milestones' | 'certifications' | 'progress'>('paths');
+  const [activeTab, setActiveTab] = useState<'paths' | 'certifications' | 'progress'>('paths');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [selectedProgressCategory, setSelectedProgressCategory] = useState<string | null>(null);
@@ -220,15 +207,6 @@ export default function JourneyAdminPage() {
         description: 'Description of learning path',
         technologies: [],
         progress: 0,
-        milestones: []
-      }),
-      ...(type === 'milestones' && {
-        date: new Date().toISOString().split('T')[0],
-        title: 'New Milestone',
-        description: 'Description of milestone',
-        category: 'learning',
-        achievement_type: 'skill',
-        skills_gained: []
       }),
       ...(type === 'certifications' && {
         title: 'New Certification',
@@ -293,7 +271,7 @@ export default function JourneyAdminPage() {
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">Manage Your Journey</h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Edit your learning paths, milestones, and certifications to showcase your development journey.
+            Edit your learning paths, certifications, and progress tracking. Milestones are managed in the Timeline section.
           </p>
         </motion.div>
 
@@ -302,7 +280,6 @@ export default function JourneyAdminPage() {
           <div className="flex flex-wrap space-x-1 bg-slate-800/50 p-1 rounded-lg">
             {[
               { id: 'paths', label: 'Learning Paths', icon: <BookOpen className="w-4 h-4" /> },
-              { id: 'milestones', label: 'Milestones', icon: <Clock className="w-4 h-4" /> },
               { id: 'certifications', label: 'Certifications', icon: <Award className="w-4 h-4" /> },
               { id: 'progress', label: 'Progress Tracking', icon: <TrendingUp className="w-4 h-4" /> }
             ].map((tab) => (
@@ -319,7 +296,6 @@ export default function JourneyAdminPage() {
                 <span className="ml-2">{tab.label}</span>
                 <span className="ml-2 px-2 py-0.5 bg-slate-600/50 rounded-full text-xs">
                   {tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
-                   tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
                    tab.id === 'certifications' ? (journeyData.certifications?.length || 0) :
                    (journeyData.progressCategories?.length || 0)}
                 </span>
