@@ -25,6 +25,7 @@ interface LearningPath {
   color: string;
   progress: number;
   order_index: number;
+  steps?: PathStep[];
   path_steps?: PathStep[];
   created_at?: string;
   updated_at?: string;
