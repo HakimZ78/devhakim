@@ -20,9 +20,8 @@ export default function ConditionalLayout({
     return <>{children}</>;
   }
 
-  // Check if we want to hide admin mode indicator on certain pages
-  const hideAdminIndicatorPages = ['/', '/journey', '/projects', '/commands', '/contact', '/templates'];
-  const showAdminIndicator = !hideAdminIndicatorPages.includes(pathname);
+  // Hide admin mode indicator on all public pages
+  const showAdminIndicator = false;
 
   // Regular pages get the full layout + admin mode indicator (except specified pages)
   return (
