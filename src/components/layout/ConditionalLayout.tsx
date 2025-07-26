@@ -20,13 +20,16 @@ export default function ConditionalLayout({
     return <>{children}</>;
   }
 
-  // Regular pages get the full layout + admin mode indicator
+  // Check if we want to hide admin mode indicator on journey page
+  const showAdminIndicator = pathname !== '/journey';
+
+  // Regular pages get the full layout + admin mode indicator (except journey)
   return (
     <>
       <Navigation />
       {children}
       <Footer />
-      <AdminModeIndicator />
+      {showAdminIndicator && <AdminModeIndicator />}
     </>
   );
 }
