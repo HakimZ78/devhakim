@@ -29,8 +29,8 @@ interface Milestone {
 interface Certification {
   id: string;
   title: string;
-  issuer: string;
-  date_earned: string;
+  provider: string;
+  completion_date: string;
   description: string;
   skills: string[];
   certificate_pdf?: string;
@@ -232,8 +232,8 @@ export default function JourneyAdminPage() {
       }),
       ...(type === 'certifications' && {
         title: 'New Certification',
-        issuer: 'Issuer Name',
-        date_earned: new Date().toISOString().split('T')[0],
+        provider: 'Provider Name',
+        completion_date: new Date().toISOString().split('T')[0],
         description: 'Description of certification',
         skills: []
       }),
@@ -387,11 +387,11 @@ export default function JourneyAdminPage() {
                       ) : (
                         <>
                           <p className="text-gray-400 text-sm mb-2">{item.description}</p>
-                          {item.date_earned && (
-                            <p className="text-gray-500 text-xs">Date: {item.date_earned}</p>
+                          {item.completion_date && (
+                            <p className="text-gray-500 text-xs">Date: {item.completion_date}</p>
                           )}
-                          {item.issuer && (
-                            <p className="text-gray-500 text-xs">Issuer: {item.issuer}</p>
+                          {item.provider && (
+                            <p className="text-gray-500 text-xs">Provider: {item.provider}</p>
                           )}
                         </>
                       )}
@@ -478,20 +478,20 @@ export default function JourneyAdminPage() {
                   {editingItem.type === 'certifications' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Issuer</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Provider</label>
                         <input
                           type="text"
-                          value={editingItem.issuer || ''}
-                          onChange={(e) => setEditingItem({ ...editingItem, issuer: e.target.value })}
+                          value={editingItem.provider || ''}
+                          onChange={(e) => setEditingItem({ ...editingItem, provider: e.target.value })}
                           className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Date Earned</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Completion Date</label>
                         <input
                           type="date"
-                          value={editingItem.date_earned || ''}
-                          onChange={(e) => setEditingItem({ ...editingItem, date_earned: e.target.value })}
+                          value={editingItem.completion_date || ''}
+                          onChange={(e) => setEditingItem({ ...editingItem, completion_date: e.target.value })}
                           className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
                         />
                       </div>

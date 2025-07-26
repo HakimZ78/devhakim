@@ -13,8 +13,8 @@ export async function POST() {
     // Test creating a certification
     const testCert = {
       title: 'Test Certification',
-      issuer: 'Test Issuer',
-      date_earned: '2025-01-01',
+      provider: 'Test Provider',
+      completion_date: '2025-01-01',
       description: 'Test description',
       skills: ['Test Skill'],
       status: 'completed',
