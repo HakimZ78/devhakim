@@ -13,7 +13,9 @@ import {
   Settings,
   LogOut,
   ExternalLink,
-  MapPin
+  MapPin,
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -161,17 +163,33 @@ export default function AdminDashboard() {
       stats: loading ? 'Loading...' : `${stats.timeline} events`
     },
     {
-      title: 'Journey',
-      description: 'Manage learning paths, milestones & certifications',
-      icon: <MapPin className="w-6 h-6" />,
-      href: '/admin/content/journey',
-      color: 'from-teal-500 to-teal-600',
-      stats: loading ? 'Loading...' : `${stats.journey} items`
+      title: 'Learning Paths',
+      description: 'Manage your learning journey paths',
+      icon: <BookOpen className="w-6 h-6" />,
+      href: '/admin/content/learning-paths',
+      color: 'from-blue-500 to-blue-600',
+      stats: loading ? 'Loading...' : `${stats.learningPaths || 0} paths`
+    },
+    {
+      title: 'Certifications',
+      description: 'Manage your certifications & credentials',
+      icon: <Award className="w-6 h-6" />,
+      href: '/admin/content/certifications',
+      color: 'from-green-500 to-green-600',
+      stats: loading ? 'Loading...' : `${stats.certifications || 0} certs`
+    },
+    {
+      title: 'Progress Tracking',
+      description: 'Track your skill development progress',
+      icon: <TrendingUp className="w-6 h-6" />,
+      href: '/admin/content/progress',
+      color: 'from-purple-500 to-purple-600',
+      stats: loading ? 'Loading...' : `${stats.progress || 0} categories`
     },
     {
       title: 'Templates',
       description: 'Manage code templates',
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <FileText className="w-6 h-6" />,
       href: '/admin/content/templates',
       color: 'from-pink-500 to-pink-600',
       stats: loading ? 'Loading...' : `${stats.templates} templates`
