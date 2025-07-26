@@ -18,13 +18,11 @@ import {
 interface Certification {
   id: string;
   title: string;
-  issuer?: string;
-  provider?: string;
+  provider: string;
   description: string;
   status: 'completed' | 'in_progress' | 'planned';
   completion_date?: string;
   expected_date?: string;
-  date_earned?: string;
   credential_id?: string;
   certificate_url?: string;
   certificate_pdf?: string;
@@ -90,11 +88,11 @@ export default function CertificationsShowcase() {
   };
 
   const getDate = (cert: Certification) => {
-    return cert.completion_date || cert.expected_date || cert.date_earned || '';
+    return cert.completion_date || cert.expected_date || '';
   };
 
   const getIssuer = (cert: Certification) => {
-    return cert.issuer || cert.provider || '';
+    return cert.provider || '';
   };
 
   if (loading) {

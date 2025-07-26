@@ -124,15 +124,15 @@ export function useJourneyData() {
 
       if (!response.ok) throw new Error('Failed to update certification')
       
-      const updatedCertification = await response.json()
+      const result = await response.json()
       setData(prev => ({
         ...prev,
         certifications: prev.certifications.map(c => 
-          c.id === certification.id ? { ...c, ...updatedCertification } : c
+          c.id === certification.id ? { ...c, ...result.data } : c
         )
       }))
       
-      return updatedCertification
+      return result.data
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Failed to update certification')
     }
@@ -192,13 +192,13 @@ export function useJourneyData() {
 
       if (!response.ok) throw new Error('Failed to create certification')
       
-      const newCertification = await response.json()
+      const result = await response.json()
       setData(prev => ({
         ...prev,
-        certifications: [...prev.certifications, newCertification]
+        certifications: [...prev.certifications, result.data]
       }))
       
-      return newCertification
+      return result.data
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Failed to create certification')
     }

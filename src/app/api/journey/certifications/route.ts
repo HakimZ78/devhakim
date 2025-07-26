@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Failed to create certification' }, { status: 500 })
     }
     
-    return NextResponse.json(data[0])
+    return NextResponse.json({ success: true, data: data[0] })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Failed to update certification' }, { status: 500 })
     }
     
-    return NextResponse.json(data[0])
+    return NextResponse.json({ success: true, data: data[0] })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
