@@ -109,25 +109,51 @@ export default function JourneyAdminPage() {
   const handleSave = async (item: any, type: string) => {
     try {
       setSaving(true);
-      const endpoint = `/api/journey/${type === 'paths' ? 'learning-paths' : type}`;
-      const method = item.id && !item.id.startsWith('temp-') ? 'PUT' : 'POST';
       
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(item),
-      });
+      if (type === 'progress') {
+        // Handle progress category saves differently
+        const response = await fetch('/api/journey/progress', {
+          method: item.id && !item.id.startsWith('temp-') ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(item.id && !item.id.startsWith('temp-') ? item : { 
+            ...item, 
+            type: 'category' 
+          }),
+        });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        await loadJourneyData(); // Reload data
-        setEditingItem(null);
+        const result = await response.json();
+        
+        if (result.success) {
+          await loadJourneyData(); // Reload data
+          setEditingItem(null);
+        } else {
+          console.error('Failed to save progress item:', result.error);
+          alert('Failed to save changes. Please try again.');
+        }
       } else {
-        console.error('Failed to save item:', result.error);
-        alert('Failed to save changes. Please try again.');
+        // Handle other journey items (paths, milestones, certifications)
+        const endpoint = `/api/journey/${type === 'paths' ? 'learning-paths' : type}`;
+        const method = item.id && !item.id.startsWith('temp-') ? 'PUT' : 'POST';
+        
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(item),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          await loadJourneyData(); // Reload data
+          setEditingItem(null);
+        } else {
+          console.error('Failed to save item:', result.error);
+          alert('Failed to save changes. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error saving item:', error);
@@ -143,21 +169,41 @@ export default function JourneyAdminPage() {
     }
 
     try {
-      const endpoint = `/api/journey/${type === 'paths' ? 'learning-paths' : type}`;
-      const response = await fetch(`${endpoint}?id=${id}`, {
-        method: 'DELETE',
-      });
+      if (type === 'progress') {
+        // Handle progress category deletes
+        const response = await fetch(`/api/journey/progress?id=${id}`, {
+          method: 'DELETE',
+        });
 
-      const result = await response.json();
-      
-      if (result.success) {
-        await loadJourneyData();
-        if (editingItem?.id === id) {
-          setEditingItem(null);
+        const result = await response.json();
+        
+        if (result.success) {
+          await loadJourneyData();
+          if (editingItem?.id === id) {
+            setEditingItem(null);
+          }
+        } else {
+          console.error('Failed to delete progress category:', result.error);
+          alert('Failed to delete item. Please try again.');
         }
       } else {
-        console.error('Failed to delete item:', result.error);
-        alert('Failed to delete item. Please try again.');
+        // Handle other journey items
+        const endpoint = `/api/journey/${type === 'paths' ? 'learning-paths' : type}`;
+        const response = await fetch(`${endpoint}?id=${id}`, {
+          method: 'DELETE',
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          await loadJourneyData();
+          if (editingItem?.id === id) {
+            setEditingItem(null);
+          }
+        } else {
+          console.error('Failed to delete item:', result.error);
+          alert('Failed to delete item. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error deleting item:', error);
