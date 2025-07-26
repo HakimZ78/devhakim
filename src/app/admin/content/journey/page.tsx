@@ -68,6 +68,12 @@ export default function JourneyAdminPage() {
       const result = await response.json();
       
       if (result.success) {
+        console.log('Journey data loaded:', {
+          learningPaths: result.data.learningPaths?.length || 0,
+          milestones: result.data.milestones?.length || 0,
+          certifications: result.data.certifications?.length || 0,
+          data: result.data
+        });
         setJourneyData(result.data);
       } else {
         console.error('Failed to load journey data:', result.error);
@@ -239,9 +245,17 @@ export default function JourneyAdminPage() {
                 {tab.icon}
                 <span className="ml-2">{tab.label}</span>
                 <span className="ml-2 px-2 py-0.5 bg-slate-600/50 rounded-full text-xs">
-                  {tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
-                   tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
-                   (journeyData.certifications?.length || 0)}
+                  {(() => {
+                    const count = tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
+                                  tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
+                                  (journeyData.certifications?.length || 0);
+                    console.log(`Tab ${tab.id} count:`, count, 'Data lengths:', {
+                      learningPaths: journeyData.learningPaths?.length || 0,
+                      milestones: journeyData.milestones?.length || 0,
+                      certifications: journeyData.certifications?.length || 0
+                    });
+                    return count;
+                  })()}
                 </span>
               </button>
             ))}
