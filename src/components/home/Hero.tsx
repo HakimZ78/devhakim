@@ -185,7 +185,7 @@ export default function Hero() {
             {heroContent.primary_cta_text}
           </motion.a>
           <motion.a 
-            href={heroContent.secondary_cta_link}
+            href="#journey"
             className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}

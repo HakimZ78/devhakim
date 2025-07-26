@@ -28,9 +28,9 @@ export async function POST() {
     // Clear existing data first
     console.log('Clearing existing data...')
     const clearResults = await Promise.all([
-      supabaseService.from('learning_paths').delete().neq('id', ''),
-      supabaseService.from('milestones').delete().neq('id', ''),
-      supabaseService.from('certifications').delete().neq('id', '')
+      supabaseService.from('learning_paths').delete().gte('created_at', '1900-01-01'),
+      supabaseService.from('milestones').delete().gte('created_at', '1900-01-01'),
+      supabaseService.from('certifications').delete().gte('created_at', '1900-01-01')
     ])
     
     console.log('Clear results:', clearResults.map(result => ({ error: result.error?.message })))

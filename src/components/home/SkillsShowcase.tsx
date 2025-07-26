@@ -106,7 +106,7 @@ export default function SkillsShowcase() {
   }
 
   return (
-    <section className="py-20">
+    <section id="skills" className="py-20">
       <div className="max-w-6xl mx-auto px-6">
         {/* Skills Categories */}
         <div className="mb-16">
@@ -157,7 +157,7 @@ export default function SkillsShowcase() {
 
         {/* Current Learning Focus */}
         {currentFocus.length > 0 && (
-          <div>
+          <div id="current-focus">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
