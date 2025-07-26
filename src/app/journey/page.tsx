@@ -2,16 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { Book, Code, Trophy, Target, Calendar, CheckCircle } from 'lucide-react';
-import EditableLearningPathVisualization from '@/components/journey/EditableLearningPathVisualization';
-import EditableProgressTracker from '@/components/journey/EditableProgressTracker';
-import EditableCertificationsShowcase from '@/components/journey/EditableCertificationsShowcase';
-import AdminModeIndicator from '@/components/admin/AdminModeIndicator';
+import LearningPathVisualization from '@/components/journey/LearningPathVisualization';
+import ProgressTracker from '@/components/journey/ProgressTracker';
+import CertificationsShowcase from '@/components/journey/CertificationsShowcase';
 
 export default function JourneyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <AdminModeIndicator />
-        
         <div className="pt-20 pb-16">
           <div className="max-w-6xl mx-auto px-6">
             {/* Header */}
@@ -41,7 +38,7 @@ export default function JourneyPage() {
                 <Target className="w-8 h-8 text-blue-400 mr-3" />
                 <h2 className="text-3xl font-bold text-white">Career Path Visualizations</h2>
               </div>
-              <EditableLearningPathVisualization />
+              <LearningPathVisualization />
             </motion.section>
 
             {/* Progress Tracker Section */}
@@ -55,7 +52,7 @@ export default function JourneyPage() {
                 <CheckCircle className="w-8 h-8 text-green-400 mr-3" />
                 <h2 className="text-3xl font-bold text-white">Progress Tracking</h2>
               </div>
-              <EditableProgressTracker />
+              <ProgressTracker />
             </motion.section>
 
             {/* Certifications Section */}
@@ -69,7 +66,7 @@ export default function JourneyPage() {
                 <Trophy className="w-8 h-8 text-yellow-400 mr-3" />
                 <h2 className="text-3xl font-bold text-white">Certifications & Courses</h2>
               </div>
-              <EditableCertificationsShowcase />
+              <CertificationsShowcase />
             </motion.section>
           </div>
         </div>
