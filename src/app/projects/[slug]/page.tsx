@@ -11,7 +11,7 @@ interface ProjectDetailPageProps {
 async function getProjectBySlug(slug: string) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/projects?slug=${slug}`, {
-      cache: 'no-store' // Always fetch fresh data
+      next: { revalidate: 300 } // Revalidate every 5 minutes
     });
     
     if (!response.ok) {

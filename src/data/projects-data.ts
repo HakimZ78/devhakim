@@ -6,29 +6,42 @@ export interface ProjectDetail {
   category: 'learning' | 'fintech' | 'business' | 'personal';
   technologies: string[];
   highlights: string[];
+  
+  // Support both camelCase (static) and snake_case (database) naming
   liveUrl?: string;
-  imageUrl: string;
+  live_url?: string;
+  imageUrl?: string;
+  image_url?: string;
   featured: boolean;
-  completionDate: Date;
+  completionDate?: Date | string;
+  completion_date?: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   status: 'completed' | 'in-progress' | 'planning';
   
   // Detailed content
   overview: string;
-  problemStatement: string;
+  problemStatement?: string;
+  problem_statement?: string;
   solution: string;
   challenges: Array<{
     title: string;
     description: string;
     solution: string;
   }>;
-  keyLearnings: string[];
-  futureEnhancements: string[];
+  keyLearnings?: string[];
+  key_learnings?: string[];
+  futureEnhancements?: string[];
+  future_enhancements?: string[];
   gallery?: Array<{
     url: string;
     caption: string;
     type: 'image' | 'video';
   }>;
+  
+  // Additional database fields
+  order_index?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const projectsData: ProjectDetail[] = [

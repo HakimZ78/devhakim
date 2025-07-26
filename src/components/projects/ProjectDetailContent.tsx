@@ -97,7 +97,7 @@ export default function ProjectDetailContent({ project }: ProjectDetailContentPr
           <div className="flex items-center text-gray-400 space-x-6">
             <div className="flex items-center">
               <Calendar className="w-5 h-5 mr-2" />
-              {new Date(project.completion_date || project.completionDate).toLocaleDateString('en-US', {
+              {new Date(project.completion_date || project.completionDate || '2025-01-01').toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long'
               })}
