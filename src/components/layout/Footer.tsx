@@ -13,7 +13,7 @@ const quickLinks = [
 
 const projectLinks = [
   { href: '/projects/forexacuity', label: 'ForexAcuity' },
-  { href: '/projects/learning-dashboard', label: 'Learning Dashboard' },
+  { href: '/projects/portfolio', label: 'Portfolio Website' },
   { href: '/projects/healthcare-api', label: 'Healthcare API' },
   { href: '/projects', label: 'View All Projects' }
 ];
