@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Plus, Save, X, Edit3, Trash2, BookOpen, Award, Clock } from 'lucide-react';
+import { MapPin, Plus, Save, X, Edit3, Trash2, BookOpen, Award, Clock, TrendingUp } from 'lucide-react';
 import { useGlobalAdmin } from '@/contexts/GlobalAdminContext';
 
 interface LearningPath {
@@ -37,10 +37,25 @@ interface Certification {
   order_index: number;
 }
 
+interface ProgressItem {
+  skill: string;
+  current_level: number;
+  target_level: number;
+  last_updated: string;
+  evidence: string[];
+}
+
+interface ProgressCategory {
+  id: string;
+  category: string;
+  items: ProgressItem[];
+}
+
 interface JourneyData {
   learningPaths: LearningPath[];
   milestones: Milestone[];
   certifications: Certification[];
+  progressCategories: ProgressCategory[];
 }
 
 export default function JourneyAdminPage() {
@@ -48,10 +63,11 @@ export default function JourneyAdminPage() {
   const [journeyData, setJourneyData] = useState<JourneyData>({
     learningPaths: [],
     milestones: [],
-    certifications: []
+    certifications: [],
+    progressCategories: []
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'paths' | 'milestones' | 'certifications'>('paths');
+  const [activeTab, setActiveTab] = useState<'paths' | 'milestones' | 'certifications' | 'progress'>('paths');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
@@ -64,17 +80,27 @@ export default function JourneyAdminPage() {
   const loadJourneyData = async () => {
     try {
       setLoading(true);
+      
+      // Load main journey data
       const response = await fetch('/api/journey');
       const result = await response.json();
+      
+      // Load progress data
+      const progressResponse = await fetch('/api/journey/progress');
+      const progressData = await progressResponse.json();
       
       if (result.success) {
         console.log('Journey data loaded:', {
           learningPaths: result.data.learningPaths?.length || 0,
           milestones: result.data.milestones?.length || 0,
           certifications: result.data.certifications?.length || 0,
+          progressCategories: progressData?.length || 0,
           data: result.data
         });
-        setJourneyData(result.data);
+        setJourneyData({
+          ...result.data,
+          progressCategories: progressData || []
+        });
       } else {
         console.error('Failed to load journey data:', result.error);
       }
@@ -169,6 +195,10 @@ export default function JourneyAdminPage() {
         date_earned: new Date().toISOString().split('T')[0],
         description: 'Description of certification',
         skills: []
+      }),
+      ...(type === 'progress' && {
+        category: 'New Category',
+        items: []
       })
     };
     setEditingItem({ ...newItem, type });
@@ -179,6 +209,7 @@ export default function JourneyAdminPage() {
       case 'paths': return journeyData.learningPaths || [];
       case 'milestones': return journeyData.milestones || [];
       case 'certifications': return journeyData.certifications || [];
+      case 'progress': return journeyData.progressCategories || [];
       default: return [];
     }
   };
@@ -231,7 +262,8 @@ export default function JourneyAdminPage() {
             {[
               { id: 'paths', label: 'Learning Paths', icon: <BookOpen className="w-4 h-4" /> },
               { id: 'milestones', label: 'Milestones', icon: <Clock className="w-4 h-4" /> },
-              { id: 'certifications', label: 'Certifications', icon: <Award className="w-4 h-4" /> }
+              { id: 'certifications', label: 'Certifications', icon: <Award className="w-4 h-4" /> },
+              { id: 'progress', label: 'Progress Tracking', icon: <TrendingUp className="w-4 h-4" /> }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -245,17 +277,10 @@ export default function JourneyAdminPage() {
                 {tab.icon}
                 <span className="ml-2">{tab.label}</span>
                 <span className="ml-2 px-2 py-0.5 bg-slate-600/50 rounded-full text-xs">
-                  {(() => {
-                    const count = tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
-                                  tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
-                                  (journeyData.certifications?.length || 0);
-                    console.log(`Tab ${tab.id} count:`, count, 'Data lengths:', {
-                      learningPaths: journeyData.learningPaths?.length || 0,
-                      milestones: journeyData.milestones?.length || 0,
-                      certifications: journeyData.certifications?.length || 0
-                    });
-                    return count;
-                  })()}
+                  {tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
+                   tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
+                   tab.id === 'certifications' ? (journeyData.certifications?.length || 0) :
+                   (journeyData.progressCategories?.length || 0)}
                 </span>
               </button>
             ))}
@@ -270,6 +295,7 @@ export default function JourneyAdminPage() {
               {activeTab === 'paths' && 'Learning Paths'}
               {activeTab === 'milestones' && 'Milestones'}
               {activeTab === 'certifications' && 'Certifications'}
+              {activeTab === 'progress' && 'Progress Tracking'}
             </h2>
             <button
               onClick={() => addNewItem(activeTab)}
@@ -298,13 +324,23 @@ export default function JourneyAdminPage() {
                 <div key={item.id} className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                      <p className="text-gray-400 text-sm mb-2">{item.description}</p>
-                      {item.date_earned && (
-                        <p className="text-gray-500 text-xs">Date: {item.date_earned}</p>
-                      )}
-                      {item.issuer && (
-                        <p className="text-gray-500 text-xs">Issuer: {item.issuer}</p>
+                      <h3 className="text-lg font-semibold text-white mb-2">
+                        {activeTab === 'progress' ? item.category : item.title}
+                      </h3>
+                      {activeTab === 'progress' ? (
+                        <p className="text-gray-400 text-sm mb-2">
+                          {item.items?.length || 0} progress items
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-gray-400 text-sm mb-2">{item.description}</p>
+                          {item.date_earned && (
+                            <p className="text-gray-500 text-xs">Date: {item.date_earned}</p>
+                          )}
+                          {item.issuer && (
+                            <p className="text-gray-500 text-xs">Issuer: {item.issuer}</p>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -337,7 +373,9 @@ export default function JourneyAdminPage() {
                   <h3 className="text-xl font-bold text-white">
                     {editingItem.id.startsWith('temp-') ? 'Add New' : 'Edit'} {
                       editingItem.type === 'paths' ? 'Learning Path' :
-                      editingItem.type === 'milestones' ? 'Milestone' : 'Certification'
+                      editingItem.type === 'milestones' ? 'Milestone' : 
+                      editingItem.type === 'certifications' ? 'Certification' :
+                      'Progress Category'
                     }
                   </h3>
                   <button
@@ -349,25 +387,40 @@ export default function JourneyAdminPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={editingItem.title || ''}
-                      onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
+                  {editingItem.type === 'progress' ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Category Name</label>
+                      <input
+                        type="text"
+                        value={editingItem.category || ''}
+                        onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                        placeholder="e.g., Technical Skills, Professional Development"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+                        <input
+                          type="text"
+                          value={editingItem.title || ''}
+                          onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
-                    <textarea
-                      value={editingItem.description || ''}
-                      onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                        <textarea
+                          value={editingItem.description || ''}
+                          onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                          rows={3}
+                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {editingItem.type === 'certifications' && (
                     <>
