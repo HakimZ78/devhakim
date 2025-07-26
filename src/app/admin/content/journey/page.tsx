@@ -226,7 +226,6 @@ export default function JourneyAdminPage() {
   const getCurrentItems = () => {
     switch (activeTab) {
       case 'paths': return journeyData.learningPaths || [];
-      case 'milestones': return journeyData.milestones || [];
       case 'certifications': return journeyData.certifications || [];
       case 'progress': return journeyData.progressCategories || [];
       default: return [];
@@ -310,7 +309,6 @@ export default function JourneyAdminPage() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white">
               {activeTab === 'paths' && 'Learning Paths'}
-              {activeTab === 'milestones' && 'Milestones'}
               {activeTab === 'certifications' && 'Certifications'}
               {activeTab === 'progress' && 'Progress Tracking'}
             </h2>
