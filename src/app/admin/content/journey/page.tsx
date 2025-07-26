@@ -239,7 +239,9 @@ export default function JourneyAdminPage() {
                 {tab.icon}
                 <span className="ml-2">{tab.label}</span>
                 <span className="ml-2 px-2 py-0.5 bg-slate-600/50 rounded-full text-xs">
-                  {getCurrentItems()?.length || 0}
+                  {tab.id === 'paths' ? (journeyData.learningPaths?.length || 0) :
+                   tab.id === 'milestones' ? (journeyData.milestones?.length || 0) :
+                   (journeyData.certifications?.length || 0)}
                 </span>
               </button>
             ))}
