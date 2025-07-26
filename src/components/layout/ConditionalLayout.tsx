@@ -20,10 +20,10 @@ export default function ConditionalLayout({
     return <>{children}</>;
   }
 
-  // Check if we want to hide admin mode indicator on journey page
-  const showAdminIndicator = pathname !== '/journey';
+  // Check if we want to hide admin mode indicator on certain pages
+  const showAdminIndicator = pathname !== '/journey' && pathname !== '/';
 
-  // Regular pages get the full layout + admin mode indicator (except journey)
+  // Regular pages get the full layout + admin mode indicator (except homepage and journey)
   return (
     <>
       <Navigation />
