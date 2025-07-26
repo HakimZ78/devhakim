@@ -19,6 +19,7 @@ export interface CommandItem {
   category: string
   project_source: string
   tags: string[]
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
   order_index: number
   created_at?: string
   updated_at?: string
@@ -232,6 +233,7 @@ function getDefaultCommands(): CommandItem[] {
       category: 'development',
       project_source: 'Portfolio',
       tags: ['nextjs', 'development', 'server'],
+      difficulty: 'beginner',
       order_index: 1
     },
     {
@@ -242,6 +244,7 @@ function getDefaultCommands(): CommandItem[] {
       category: 'deployment',
       project_source: 'Portfolio', 
       tags: ['nextjs', 'build', 'production'],
+      difficulty: 'intermediate',
       order_index: 2
     },
     {
@@ -252,6 +255,7 @@ function getDefaultCommands(): CommandItem[] {
       category: 'setup',
       project_source: 'General',
       tags: ['npm', 'dependencies', 'setup'],
+      difficulty: 'beginner',
       order_index: 3
     },
     {
@@ -262,6 +266,7 @@ function getDefaultCommands(): CommandItem[] {
       category: 'docker',
       project_source: 'Portfolio',
       tags: ['docker', 'build', 'container'],
+      difficulty: 'advanced',
       order_index: 4
     },
     {
@@ -272,6 +277,7 @@ function getDefaultCommands(): CommandItem[] {
       category: 'development',
       project_source: 'Portfolio',
       tags: ['typescript', 'types', 'check'],
+      difficulty: 'intermediate',
       order_index: 5
     }
   ]

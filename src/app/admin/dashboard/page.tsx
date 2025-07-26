@@ -28,6 +28,9 @@ interface DashboardStats {
   templates: number;
   commands: number;
   journey: number;
+  learningPaths: number;
+  certifications: number;
+  progress: number;
 }
 
 export default function AdminDashboard() {
@@ -39,7 +42,10 @@ export default function AdminDashboard() {
     timeline: 0,
     templates: 0,
     commands: 0,
-    journey: 0
+    journey: 0,
+    learningPaths: 0,
+    certifications: 0,
+    progress: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,13 +55,15 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      const [projectsRes, skillsRes, timelineRes, templatesRes, commandsRes, journeyRes] = await Promise.all([
+      const [projectsRes, skillsRes, timelineRes, templatesRes, commandsRes, learningPathsRes, certificationsRes, progressRes] = await Promise.all([
         fetch('/api/projects'),
         fetch('/api/skills/categories'),
         fetch('/api/timeline-events'),
         fetch('/api/templates'),
         fetch('/api/commands'),
-        fetch('/api/journey')
+        fetch('/api/journey/learning-paths'),
+        fetch('/api/journey/certifications'),
+        fetch('/api/journey/progress')
       ]);
 
       // Handle each response individually with error checking
@@ -64,7 +72,9 @@ export default function AdminDashboard() {
       let timeline = { success: false, data: [] };
       let templates = { success: false, data: [] };
       let commands = { success: false, data: [] };
-      let journey = { success: false, data: { learningPaths: [], milestones: [], certifications: [] } };
+      let learningPaths = [];
+      let certifications = [];
+      let progress = [];
 
       if (projectsRes.ok) {
         try {
@@ -106,11 +116,27 @@ export default function AdminDashboard() {
         }
       }
 
-      if (journeyRes.ok) {
+      if (learningPathsRes.ok) {
         try {
-          journey = await journeyRes.json();
+          learningPaths = await learningPathsRes.json();
         } catch (e) {
-          console.error('Failed to parse journey response:', e);
+          console.error('Failed to parse learning paths response:', e);
+        }
+      }
+
+      if (certificationsRes.ok) {
+        try {
+          certifications = await certificationsRes.json();
+        } catch (e) {
+          console.error('Failed to parse certifications response:', e);
+        }
+      }
+
+      if (progressRes.ok) {
+        try {
+          progress = await progressRes.json();
+        } catch (e) {
+          console.error('Failed to parse progress response:', e);
         }
       }
 
@@ -120,7 +146,10 @@ export default function AdminDashboard() {
         timeline: timeline.success ? timeline.data.length : 0,
         templates: templates.success ? templates.data.length : 0,
         commands: commands.success ? commands.data.length : 0,
-        journey: journey.success ? (journey.data.learningPaths?.length || 0) + (journey.data.milestones?.length || 0) + (journey.data.certifications?.length || 0) : 0
+        journey: 0, // Keep for backwards compatibility
+        learningPaths: Array.isArray(learningPaths) ? learningPaths.length : 0,
+        certifications: Array.isArray(certifications) ? certifications.length : 0,
+        progress: Array.isArray(progress) ? progress.length : 0
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);

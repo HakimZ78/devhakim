@@ -15,24 +15,28 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('learning_paths')
-      .select(`
-        *,
-        path_steps (*)
-      `)
+      .select('*')
       .order('order_index')
     
     if (error) {
       console.error('Error fetching learning paths:', error)
-      // Return fallback data if database isn't available
       return NextResponse.json(getDefaultLearningPaths())
     }
     
-    // Return empty array if no data exists (after migration)
+    // Return empty array if no data exists
     if (!data || data.length === 0) {
       return NextResponse.json([])
     }
     
-    return NextResponse.json(data)
+    // Ensure steps is always an array (handle null/undefined)
+    const pathsWithSteps = data.map(path => ({
+      ...path,
+      steps: path.steps || [],
+      // Also add path_steps for backward compatibility with frontend
+      path_steps: path.steps || []
+    }))
+    
+    return NextResponse.json(pathsWithSteps)
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(getDefaultLearningPaths())
@@ -79,6 +83,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     
+    // Ensure steps is initialized as empty array
+    if (!body.steps) {
+      body.steps = []
+    }
+    
+    // Remove path_steps if it exists (backward compatibility)
+    delete body.path_steps
+    
     const { data, error } = await supabaseService
       .from('learning_paths')
       .insert(body)
@@ -89,7 +101,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Failed to create learning path' }, { status: 500 })
     }
     
-    return NextResponse.json({ success: true, data: data[0] })
+    // Return with both steps and path_steps for compatibility
+    const result = data[0]
+    if (result) {
+      result.path_steps = result.steps || []
+    }
+    
+    return NextResponse.json({ success: true, data: result })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -100,6 +118,14 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json()
     const { id, ...updateData } = body
+    
+    // Ensure steps is properly formatted if provided
+    if (updateData.steps) {
+      updateData.steps = Array.isArray(updateData.steps) ? updateData.steps : []
+    }
+    
+    // Remove path_steps if it exists (backward compatibility)
+    delete updateData.path_steps
     
     const { data, error } = await supabaseService
       .from('learning_paths')
@@ -112,7 +138,13 @@ export async function PUT(request: Request) {
       return NextResponse.json({ success: false, error: 'Failed to update learning path' }, { status: 500 })
     }
     
-    return NextResponse.json({ success: true, data: data[0] })
+    // Return with both steps and path_steps for compatibility
+    const result = data[0]
+    if (result) {
+      result.path_steps = result.steps || []
+    }
+    
+    return NextResponse.json({ success: true, data: result })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

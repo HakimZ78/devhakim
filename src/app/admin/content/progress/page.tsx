@@ -65,7 +65,7 @@ export default function ProgressTrackingAdmin() {
 
   const loadCategoryItems = async (categoryId: string) => {
     try {
-      const response = await fetch(`/api/journey/progress?category_id=${categoryId}`);
+      const response = await fetch(`/api/journey/progress/items?category_id=${categoryId}`);
       const data = await response.json();
       
       setCategories(prev => prev.map(cat => 

@@ -108,8 +108,8 @@ export default function CommandsReference() {
           category: cmd.category,
           projectSource: cmd.project_source,
           tags: cmd.tags || [],
-          difficulty: 'intermediate', // Default since not in database
-          complexity: 3 // Default since not in database
+          difficulty: cmd.difficulty || 'intermediate', // Use actual difficulty from database
+          complexity: cmd.difficulty === 'beginner' ? 1 : cmd.difficulty === 'advanced' ? 5 : 3
         }));
         setCommands(transformedCommands);
       } else {
