@@ -41,7 +41,7 @@ interface LearningPath {
   path_steps?: PathStep[];
 }
 
-const iconMap: { [key: string]: JSX.Element } = {
+const iconMap: { [key: string]: React.ReactElement } = {
   'Brain': <Brain className="w-6 h-6" />,
   'Code': <Code className="w-6 h-6" />,
   'DollarSign': <DollarSign className="w-6 h-6" />,
