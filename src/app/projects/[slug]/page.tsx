@@ -10,7 +10,12 @@ interface ProjectDetailPageProps {
 
 async function getProjectBySlug(slug: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/projects?slug=${slug}`, {
+    // In production, use the full domain; in development, use localhost
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://devhakim.com' 
+      : 'http://localhost:3001';
+    
+    const response = await fetch(`${baseUrl}/api/projects?slug=${slug}`, {
       next: { revalidate: 300 } // Revalidate every 5 minutes
     });
     
@@ -22,7 +27,9 @@ async function getProjectBySlug(slug: string) {
     return result.success ? result.data : null;
   } catch (error) {
     console.error('Error fetching project:', error);
-    return null;
+    // Fallback to static data if API fails
+    const { getProjectBySlug: getStaticProject } = await import('@/data/projects-data');
+    return getStaticProject(slug);
   }
 }
 
