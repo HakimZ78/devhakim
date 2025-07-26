@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Plus, Save, X, Edit3, Trash2, BookOpen, Award, Clock, TrendingUp } from 'lucide-react';
+import { MapPin, Plus, Save, X, Edit3, Trash2, BookOpen, Award, Clock, TrendingUp, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useGlobalAdmin } from '@/contexts/GlobalAdminContext';
 
 interface LearningPath {
@@ -70,6 +70,8 @@ export default function JourneyAdminPage() {
   const [activeTab, setActiveTab] = useState<'paths' | 'milestones' | 'certifications' | 'progress'>('paths');
   const [editingItem, setEditingItem] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [selectedProgressCategory, setSelectedProgressCategory] = useState<string | null>(null);
+  const [editingProgressItem, setEditingProgressItem] = useState<any>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -90,13 +92,6 @@ export default function JourneyAdminPage() {
       const progressData = await progressResponse.json();
       
       if (result.success) {
-        console.log('Journey data loaded:', {
-          learningPaths: result.data.learningPaths?.length || 0,
-          milestones: result.data.milestones?.length || 0,
-          certifications: result.data.certifications?.length || 0,
-          progressCategories: progressData?.length || 0,
-          data: result.data
-        });
         setJourneyData({
           ...result.data,
           progressCategories: progressData || []
@@ -264,9 +259,7 @@ export default function JourneyAdminPage() {
               { id: 'milestones', label: 'Milestones', icon: <Clock className="w-4 h-4" /> },
               { id: 'certifications', label: 'Certifications', icon: <Award className="w-4 h-4" /> },
               { id: 'progress', label: 'Progress Tracking', icon: <TrendingUp className="w-4 h-4" /> }
-            ].map((tab) => {
-              console.log('Rendering tab:', tab.id, tab.label);
-              return (
+            ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
@@ -285,8 +278,7 @@ export default function JourneyAdminPage() {
                    (journeyData.progressCategories?.length || 0)}
                 </span>
                 </button>
-              );
-            })}
+            ))}
           </div>
         </div>
 
@@ -331,9 +323,21 @@ export default function JourneyAdminPage() {
                         {activeTab === 'progress' ? item.category : item.title}
                       </h3>
                       {activeTab === 'progress' ? (
-                        <p className="text-gray-400 text-sm mb-2">
-                          {item.items?.length || 0} progress items
-                        </p>
+                        <>
+                          <p className="text-gray-400 text-sm mb-2">
+                            {item.items?.length || 0} progress items
+                          </p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProgressCategory(item.id);
+                            }}
+                            className="mt-2 text-blue-400 hover:text-blue-300 text-sm flex items-center"
+                          >
+                            View/Edit Items
+                            <ChevronRight className="w-4 h-4 ml-1" />
+                          </button>
+                        </>
                       ) : (
                         <>
                           <p className="text-gray-400 text-sm mb-2">{item.description}</p>
@@ -472,6 +476,226 @@ export default function JourneyAdminPage() {
                         Save Changes
                       </>
                     )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Progress Items Modal */}
+        {selectedProgressCategory && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setSelectedProgressCategory(null)}
+                      className="p-2 text-gray-400 hover:text-white transition-colors mr-3"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <h3 className="text-xl font-bold text-white">
+                      {journeyData.progressCategories.find(cat => cat.id === selectedProgressCategory)?.category} - Progress Items
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setSelectedProgressCategory(null)}
+                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <button
+                    onClick={() => {
+                      const category = journeyData.progressCategories.find(cat => cat.id === selectedProgressCategory);
+                      if (category) {
+                        setEditingProgressItem({
+                          id: `temp-${Date.now()}`,
+                          skill: 'New Skill',
+                          current_level: 0,
+                          target_level: 100,
+                          last_updated: new Date().toISOString().split('T')[0],
+                          evidence: [],
+                          categoryId: selectedProgressCategory,
+                          isNew: true
+                        });
+                      }
+                    }}
+                    className="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-200"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Progress Item
+                  </button>
+                </div>
+
+                {/* Progress Items List */}
+                <div className="space-y-4">
+                  {journeyData.progressCategories
+                    .find(cat => cat.id === selectedProgressCategory)
+                    ?.items.map((item, index) => (
+                      <div key={index} className="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-white mb-1">{item.skill}</h4>
+                            <div className="text-sm text-gray-400 mb-2">
+                              Progress: {item.current_level}% / Target: {item.target_level}%
+                            </div>
+                            <div className="w-full bg-slate-600 rounded-full h-2 mb-2">
+                              <div
+                                className="h-2 bg-gradient-to-r from-blue-500 to-green-500 rounded-full"
+                                style={{ width: `${(item.current_level / item.target_level) * 100}%` }}
+                              />
+                            </div>
+                            {item.evidence && item.evidence.length > 0 && (
+                              <div className="text-xs text-gray-500">
+                                Evidence: {item.evidence.join(', ')}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => setEditingProgressItem({ ...item, categoryId: selectedProgressCategory, index })}
+                              className="p-2 text-gray-400 hover:text-white transition-colors duration-200"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Handle delete progress item
+                                const category = journeyData.progressCategories.find(cat => cat.id === selectedProgressCategory);
+                                if (category) {
+                                  const updatedItems = category.items.filter((_, i) => i !== index);
+                                  const updatedCategory = { ...category, items: updatedItems };
+                                  handleSave(updatedCategory, 'progress');
+                                }
+                              }}
+                              className="p-2 text-gray-400 hover:text-red-400 transition-colors duration-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Progress Item Modal */}
+        {editingProgressItem && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div className="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-2xl">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-white">
+                    {editingProgressItem.isNew ? 'Add' : 'Edit'} Progress Item
+                  </h3>
+                  <button
+                    onClick={() => setEditingProgressItem(null)}
+                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Skill Name</label>
+                    <input
+                      type="text"
+                      value={editingProgressItem.skill || ''}
+                      onChange={(e) => setEditingProgressItem({ ...editingProgressItem, skill: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Current Level (%)</label>
+                      <input
+                        type="number"
+                        value={editingProgressItem.current_level || 0}
+                        onChange={(e) => setEditingProgressItem({ ...editingProgressItem, current_level: parseInt(e.target.value) || 0 })}
+                        min="0"
+                        max="100"
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Target Level (%)</label>
+                      <input
+                        type="number"
+                        value={editingProgressItem.target_level || 100}
+                        onChange={(e) => setEditingProgressItem({ ...editingProgressItem, target_level: parseInt(e.target.value) || 100 })}
+                        min="0"
+                        max="100"
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Evidence (comma-separated)</label>
+                    <input
+                      type="text"
+                      value={editingProgressItem.evidence?.join(', ') || ''}
+                      onChange={(e) => setEditingProgressItem({ 
+                        ...editingProgressItem, 
+                        evidence: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                      })}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:border-teal-500 focus:outline-none"
+                      placeholder="e.g., ForexAcuity Backend, Healthcare API"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end space-x-4 mt-6 pt-6 border-t border-slate-600">
+                  <button
+                    onClick={() => setEditingProgressItem(null)}
+                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      const category = journeyData.progressCategories.find(cat => cat.id === editingProgressItem.categoryId);
+                      if (category) {
+                        let updatedItems;
+                        if (editingProgressItem.isNew) {
+                          updatedItems = [...category.items, {
+                            skill: editingProgressItem.skill,
+                            current_level: editingProgressItem.current_level,
+                            target_level: editingProgressItem.target_level,
+                            last_updated: new Date().toISOString(),
+                            evidence: editingProgressItem.evidence || []
+                          }];
+                        } else {
+                          updatedItems = category.items.map((item, i) => 
+                            i === editingProgressItem.index ? {
+                              ...item,
+                              skill: editingProgressItem.skill,
+                              current_level: editingProgressItem.current_level,
+                              target_level: editingProgressItem.target_level,
+                              evidence: editingProgressItem.evidence || [],
+                              last_updated: new Date().toISOString()
+                            } : item
+                          );
+                        }
+                        const updatedCategory = { ...category, items: updatedItems };
+                        handleSave(updatedCategory, 'progress');
+                        setEditingProgressItem(null);
+                      }
+                    }}
+                    className="inline-flex items-center px-6 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-200"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Progress Item
                   </button>
                 </div>
               </div>
