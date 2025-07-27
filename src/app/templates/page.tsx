@@ -119,7 +119,7 @@ export default function Templates() {
             Code <span className="text-blue-400">Templates</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Starter templates and boilerplate code from my projects. Copy, modify, and use in your own work.
+            Starter templates and boilerplate code from my projects. Templates will be added to as learning journey progresses. There will be 20-40+ files in this section.
           </p>
         </motion.div>
 

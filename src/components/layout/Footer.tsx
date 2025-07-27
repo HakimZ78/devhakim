@@ -46,8 +46,8 @@ export default function Footer() {
               <span className="text-white font-bold text-xl">DevHakim</span>
             </div>
             <p className="text-gray-400 mb-4 leading-relaxed">
-              Full-Stack Python Developer transitioning from healthcare to software engineering. 
-              Specializing in fintech applications and real-time systems.
+              Full-Stack Developer transitioning from healthcare to software engineering. 
+              Aiming to specialise in fintech applications and real-time systems but open to general Full-Stack.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
