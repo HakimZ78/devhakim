@@ -174,7 +174,7 @@ export default function FeaturedProjects() {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-4">Featured Projects</h2>
           <p className="text-xl text-gray-400 mb-8">
-            Real-world applications demonstrating full-stack development and fintech expertise
+            Real-world applications demonstrating full-stack and fintech application development awareness
           </p>
           <Link 
             href="/projects"
