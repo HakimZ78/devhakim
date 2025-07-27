@@ -139,8 +139,8 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           dangerouslySetInnerHTML={{ __html: heroContent.description.replace(
-            /Pharmacy & Optometry/g,
-            '<span class="text-green-400 font-semibold">Pharmacy & Optometry</span>'
+            /Optometrist & Pharmacist/g,
+            '<span class="text-green-400 font-semibold">Optometrist & Pharmacist</span>'
           ).replace(
             /Financial Markets/g,
             '<span class="text-green-400 font-semibold">Financial Markets</span>'
