@@ -120,7 +120,7 @@ export default function SkillsShowcase() {
               Technical Skills
             </h2>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              My technical expertise spans across multiple domains
+              Gaining proficiency across multiple domains
             </p>
           </motion.div>
 
